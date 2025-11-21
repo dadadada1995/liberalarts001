@@ -1,4 +1,4 @@
-// UI管理クラス（ニックネーム機能削除版）
+// UI管理クラス（BGM音量コントロール対応版）
 class UIManager {
     constructor() {
         console.log('🎨 UIManager initializing...');
@@ -7,7 +7,7 @@ class UIManager {
             menuScreen: document.getElementById('menuScreen'),
             howToPlayScreen: document.getElementById('howToPlayScreen'),
             historyScreen: document.getElementById('historyScreen'),
-            setupScreen: document.getElementById('setupScreen'), // loginScreenから変更
+            setupScreen: document.getElementById('setupScreen'),
             countdownScreen: document.getElementById('countdownScreen'),
             gameScreen: document.getElementById('gameScreen'),
             wordMakeScreen: document.getElementById('wordMakeScreen'),
@@ -54,7 +54,11 @@ class UIManager {
             resultCreatedWords: document.getElementById('resultCreatedWords'),
             playAgain: document.getElementById('playAgain'),
             viewHistory: document.getElementById('viewHistory'),
-            backToMenuFromResult: document.getElementById('backToMenuFromResult')
+            backToMenuFromResult: document.getElementById('backToMenuFromResult'),
+            
+            bgmVolumeSlider: document.getElementById('bgmVolumeSlider'),
+            bgmVolumeValue: document.getElementById('bgmVolumeValue'),
+            bgmNotice: document.getElementById('bgmNotice')
         };
         
         this.currentHistoryDifficulty = 'all';
@@ -72,7 +76,7 @@ class UIManager {
         if (this.elements.playButton) {
             this.elements.playButton.addEventListener('click', () => {
                 console.log('🎮 Play button clicked');
-                this.showScreen('setup'); // loginからsetupに変更
+                this.showScreen('setup');
             });
         }
         
@@ -100,6 +104,40 @@ class UIManager {
                 if (window.soundManager) {
                     window.soundManager.setEnabled(e.target.checked);
                 }
+            });
+        }
+        
+        // BGM音量スライダー
+        if (this.elements.bgmVolumeSlider) {
+            this.elements.bgmVolumeSlider.addEventListener('input', (e) => {
+                const volume = e.target.value;
+                if (window.soundManager) {
+                    window.soundManager.setBGMVolume(volume / 100);
+                }
+                if (this.elements.bgmVolumeValue) {
+                    this.elements.bgmVolumeValue.textContent = volume + '%';
+                }
+            });
+        }
+        
+        // BGM通知の表示制御
+        if (this.elements.bgmNotice && window.soundManager) {
+            setTimeout(() => {
+                if (window.soundManager && !window.soundManager.bgmUnlocked) {
+                    this.elements.bgmNotice.style.display = 'block';
+                }
+            }, 1000);
+            
+            const hideNotice = () => {
+                if (window.soundManager && window.soundManager.bgmUnlocked) {
+                    if (this.elements.bgmNotice) {
+                        this.elements.bgmNotice.style.display = 'none';
+                    }
+                }
+            };
+            
+            ['touchstart', 'click'].forEach(event => {
+                document.addEventListener(event, hideNotice, { once: true });
             });
         }
         
@@ -186,7 +224,7 @@ class UIManager {
             'menu': 'menuScreen',
             'howToPlay': 'howToPlayScreen',
             'history': 'historyScreen',
-            'setup': 'setupScreen', // loginからsetupに変更
+            'setup': 'setupScreen',
             'countdown': 'countdownScreen',
             'game': 'gameScreen',
             'wordMake': 'wordMakeScreen',
@@ -447,7 +485,6 @@ class UIManager {
         if (this.elements.maxCombo) this.elements.maxCombo.textContent = maxCombo;
         if (this.elements.totalBlocks) this.elements.totalBlocks.textContent = totalBlocks;
         
-        // スコアを保存（プレイヤー名なし）
         const result = await this.scoreHistoryManager.saveScore(
             totalScore,
             difficulty,

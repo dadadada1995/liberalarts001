@@ -51,6 +51,13 @@
                 </button>
             </div>
             
+            <!-- BGM通知 -->
+            <div id="bgmNotice" class="bgm-notice" style="display: none;">
+                <p style="font-size: 14px; color: var(--warning-color); text-align: center; margin: 15px 0;">
+                    🎵 タップして音楽を有効化してください
+                </p>
+            </div>
+            
             <div class="menu-footer">
                 <div class="sound-toggle-menu">
                     <label class="toggle-switch">
@@ -58,6 +65,13 @@
                         <span class="toggle-slider"></span>
                     </label>
                     <span class="toggle-label">🔊 SOUND</span>
+                </div>
+                
+                <!-- BGM音量調整 -->
+                <div class="volume-control">
+                    <span class="volume-label">🎵 BGM</span>
+                    <input type="range" id="bgmVolumeSlider" min="0" max="100" value="30">
+                    <span id="bgmVolumeValue" class="volume-value">30%</span>
                 </div>
             </div>
         </div>
@@ -106,7 +120,7 @@
         </div>
     </div>
 
-    <!-- スコア履歴画面（ニックネーム列削除） -->
+    <!-- スコア履歴画面 -->
     <div id="historyScreen" class="screen">
         <div class="container history-container">
             <h2 class="section-title">📊 SCORE HISTORY 📊</h2>
@@ -167,7 +181,7 @@
         </div>
     </div>
 
-    <!-- セットアップ画面（ニックネーム入力削除） -->
+    <!-- セットアップ画面 -->
     <div id="setupScreen" class="screen">
         <div class="container game-setup-container">
             <h2 class="section-title">GAME SETUP</h2>
@@ -327,7 +341,7 @@
         </div>
     </div>
 
-    <!-- 結果画面（ニックネーム表示削除） -->
+    <!-- 結果画面 -->
     <div id="resultScreen" class="screen">
         <div class="container result-container">
             <div class="result-rank" id="rankDisplay">

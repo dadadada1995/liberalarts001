@@ -1,33 +1,87 @@
-// サウンド管理クラス（BGM機能追加版）
+// サウンド管理クラス（モバイル対応BGM版）
 class SoundManager {
     constructor() {
         this.enabled = true;
         this.audioContext = null;
-        this.bgmAudio = null; // BGM用のAudio要素
-        this.bgmVolume = 0.3; // BGM音量（0.0〜1.0）
+        this.bgmAudio = null;
+        this.bgmVolume = 0.3;
+        this.bgmUnlocked = false; // BGMのロック解除フラグ
         
         if (typeof AudioContext !== 'undefined' || typeof webkitAudioContext !== 'undefined') {
             this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
         }
         
-        // BGMの初期化
         this.initBGM();
+        this.setupMobileUnlock();
     }
     
     initBGM() {
         this.bgmAudio = new Audio('Christmasmusic.mp3');
-        this.bgmAudio.loop = true; // ループ再生
+        this.bgmAudio.loop = true;
         this.bgmAudio.volume = this.bgmVolume;
+        this.bgmAudio.preload = 'auto';
         
-        // ユーザーインタラクション後に自動再生を試みる
+        // iOSなどのための追加設定
+        this.bgmAudio.setAttribute('playsinline', 'true');
+        this.bgmAudio.setAttribute('webkit-playsinline', 'true');
+        
         this.bgmAudio.load();
         
         console.log('🎵 BGM initialized');
     }
     
-    // BGMを再生
+    // モバイル用のBGMアンロック処理
+    setupMobileUnlock() {
+        const unlockAudio = () => {
+            if (this.bgmUnlocked) return;
+            
+            console.log('📱 Attempting to unlock audio...');
+            
+            // AudioContextのレジューム
+            if (this.audioContext && this.audioContext.state === 'suspended') {
+                this.audioContext.resume().then(() => {
+                    console.log('✅ AudioContext resumed');
+                });
+            }
+            
+            // BGMの再生テスト
+            if (this.bgmAudio && this.enabled) {
+                const playPromise = this.bgmAudio.play();
+                if (playPromise !== undefined) {
+                    playPromise
+                        .then(() => {
+                            console.log('✅ BGM unlocked and playing');
+                            this.bgmUnlocked = true;
+                            // すぐに一時停止（実際のゲーム開始まで待つ）
+                            this.bgmAudio.pause();
+                            this.bgmAudio.currentTime = 0;
+                        })
+                        .catch(e => {
+                            console.log('⚠️ BGM unlock failed:', e);
+                        });
+                }
+            }
+        };
+        
+        // 様々なユーザーインタラクションイベントに対応
+        const events = ['touchstart', 'touchend', 'click', 'keydown'];
+        events.forEach(event => {
+            document.addEventListener(event, unlockAudio, { once: true, passive: true });
+        });
+        
+        // 追加のフォールバック
+        window.addEventListener('load', () => {
+            setTimeout(unlockAudio, 100);
+        });
+    }
+    
     playBGM() {
         if (!this.enabled || !this.bgmAudio) return;
+        
+        // AudioContextをレジューム（必要な場合）
+        if (this.audioContext && this.audioContext.state === 'suspended') {
+            this.audioContext.resume();
+        }
         
         const playPromise = this.bgmAudio.play();
         
@@ -35,18 +89,32 @@ class SoundManager {
             playPromise
                 .then(() => {
                     console.log('🎵 BGM playing');
+                    this.bgmUnlocked = true;
                 })
                 .catch(error => {
-                    console.log('⚠️ BGM autoplay prevented:', error);
-                    // 自動再生が失敗した場合、最初のユーザーインタラクションで再生
-                    document.addEventListener('click', () => {
-                        this.bgmAudio.play().catch(e => console.log('BGM play failed:', e));
-                    }, { once: true });
+                    console.log('⚠️ BGM play prevented:', error);
+                    
+                    // モバイルで失敗した場合の追加対策
+                    if (!this.bgmUnlocked) {
+                        console.log('📱 Setting up mobile BGM unlock...');
+                        const mobileUnlock = () => {
+                            this.bgmAudio.play()
+                                .then(() => {
+                                    console.log('✅ BGM started after user interaction');
+                                    this.bgmUnlocked = true;
+                                })
+                                .catch(e => console.log('BGM still blocked:', e));
+                        };
+                        
+                        // 次のタッチ/クリックで再試行
+                        ['touchstart', 'click'].forEach(event => {
+                            document.addEventListener(event, mobileUnlock, { once: true, passive: true });
+                        });
+                    }
                 });
         }
     }
     
-    // BGMを停止
     stopBGM() {
         if (this.bgmAudio) {
             this.bgmAudio.pause();
@@ -55,7 +123,6 @@ class SoundManager {
         }
     }
     
-    // BGMを一時停止
     pauseBGM() {
         if (this.bgmAudio) {
             this.bgmAudio.pause();
@@ -63,15 +130,13 @@ class SoundManager {
         }
     }
     
-    // BGMを再開
     resumeBGM() {
-        if (this.enabled && this.bgmAudio) {
+        if (this.enabled && this.bgmAudio && this.bgmUnlocked) {
             this.bgmAudio.play().catch(e => console.log('BGM resume failed:', e));
             console.log('▶️ BGM resumed');
         }
     }
     
-    // BGM音量を設定
     setBGMVolume(volume) {
         this.bgmVolume = Math.max(0, Math.min(1, volume));
         if (this.bgmAudio) {
@@ -103,6 +168,11 @@ class SoundManager {
     
     playBeep(frequency, duration, volume = 0.3) {
         if (!this.enabled || !this.audioContext) return;
+        
+        // AudioContextをレジューム
+        if (this.audioContext.state === 'suspended') {
+            this.audioContext.resume();
+        }
         
         const oscillator = this.audioContext.createOscillator();
         const gainNode = this.audioContext.createGain();

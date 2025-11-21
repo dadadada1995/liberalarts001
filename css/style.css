@@ -262,18 +262,96 @@ body {
     font-size: 14px;
 }
 
+/* BGM通知 */
+.bgm-notice {
+    animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+
 /* メニューフッター */
 .menu-footer {
     display: flex;
     justify-content: center;
+    align-items: center;
     padding-top: 20px;
     border-top: 1px solid rgba(255, 255, 255, 0.1);
+    gap: 20px;
+    flex-wrap: wrap;
 }
 
 .sound-toggle-menu {
     display: flex;
     align-items: center;
     gap: 12px;
+}
+
+/* 音量コントロール */
+.volume-control {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.volume-label {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-dim);
+    letter-spacing: 1px;
+}
+
+.volume-value {
+    font-size: 12px;
+    color: var(--text-dim);
+    min-width: 35px;
+    text-align: right;
+}
+
+.volume-control input[type="range"] {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100px;
+    height: 6px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 3px;
+    outline: none;
+    cursor: pointer;
+}
+
+.volume-control input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 16px;
+    height: 16px;
+    background: var(--primary-color);
+    border-radius: 50%;
+    cursor: pointer;
+    box-shadow: 0 0 10px rgba(0, 212, 255, 0.5);
+    transition: all 0.3s ease;
+}
+
+.volume-control input[type="range"]::-webkit-slider-thumb:hover {
+    transform: scale(1.2);
+    box-shadow: 0 0 15px rgba(0, 212, 255, 0.8);
+}
+
+.volume-control input[type="range"]::-moz-range-thumb {
+    width: 16px;
+    height: 16px;
+    background: var(--primary-color);
+    border-radius: 50%;
+    cursor: pointer;
+    border: none;
+    box-shadow: 0 0 10px rgba(0, 212, 255, 0.5);
+    transition: all 0.3s ease;
+}
+
+.volume-control input[type="range"]::-moz-range-thumb:hover {
+    transform: scale(1.2);
+    box-shadow: 0 0 15px rgba(0, 212, 255, 0.8);
 }
 
 /* トグルスイッチ */
@@ -1682,10 +1760,22 @@ input:checked + .toggle-slider:before {
         margin-bottom: 20px;
     }
     
-    /* 遊び方画面 */
-    .how-to-container {
-        padding: 15px;
-        max-height: 85vh;
+    .logo-title {
+        font-size: 36px;
+    }
+    
+    .menu-footer {
+        flex-direction: column;
+        gap: 15px;
+    }
+    
+    .volume-control {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    .volume-control input[type="range"] {
+        width: 150px;
     }
     
     .how-to-content {
@@ -1693,199 +1783,10 @@ input:checked + .toggle-slider:before {
         gap: 15px;
     }
     
-    .how-to-item {
-        padding: 20px;
-    }
-    
-    .how-to-icon {
-        font-size: 40px;
-        margin-bottom: 12px;
-    }
-    
-    .how-to-item h3 {
-        font-size: 16px;
-        margin-bottom: 10px;
-    }
-    
-    .how-to-item p {
-        font-size: 13px;
-        line-height: 1.5;
-    }
-    
-    /* スコア履歴画面 */
-    .history-container {
-        padding: 15px;
-        max-height: 85vh;
-    }
-    
-    .stats-grid {
-        grid-template-columns: repeat(2, 1fr);
-        gap: 8px;
-    }
-    
-    .stat-card {
-        padding: 12px;
-    }
-    
-    .stat-card .stat-icon {
-        font-size: 24px;
-    }
-    
-    .stat-card .stat-value {
-        font-size: 18px;
-    }
-    
-    .history-table-container {
-        max-height: 300px;
-    }
-    
-    .history-table th {
-        padding: 10px 6px;
-        font-size: 11px;
-    }
-    
-    .history-table td {
-        padding: 8px 6px;
-        font-size: 12px;
-    }
-    
-    /* 単語作成画面 */
-    .word-make-container {
-        max-height: 85vh;
-        padding: 12px;
-    }
-    
-    .word-make-header {
-        gap: 10px;
-        margin-bottom: 12px;
-    }
-    
-    .word-make-info {
-        padding: 10px;
-        margin-bottom: 12px;
-    }
-    
-    .word-make-info p {
-        font-size: 13px;
-    }
-    
-    .word-section {
-        margin-bottom: 12px;
-    }
-    
-    .section-label {
-        font-size: 11px;
-        margin-bottom: 6px;
-    }
-    
-    .word-display {
-        min-height: 50px;
-        padding: 12px;
-        gap: 6px;
-    }
-    
-    .word-display .letter-badge {
-        font-size: 18px;
-        padding: 8px 12px;
-    }
-    
-    .letters-display {
-        min-height: 70px;
-        padding: 12px;
-        gap: 6px;
-    }
-    
-    .word-controls {
-        gap: 10px;
-        margin-bottom: 12px;
-    }
-    
-    .word-btn {
-        padding: 10px 16px;
-        font-size: 13px;
-        gap: 6px;
-    }
-    
-    .word-make-message {
-        min-height: 30px;
-        padding: 8px 12px;
-        font-size: 13px;
-        margin-bottom: 12px;
-    }
-    
-    .created-words-list {
-        max-height: 120px;
-        padding: 10px;
-    }
-    
-    .created-words-list .word-item {
-        padding: 8px 10px;
-        margin-bottom: 5px;
-    }
-    
-    /* 結果画面 */
-    .result-container {
-        max-height: 85vh;
-        padding: 12px;
-    }
-    
-    .result-rank {
-        margin-bottom: 15px;
-    }
-    
-    .rank-badge {
-        gap: 6px;
-        padding: 12px 24px;
-    }
-    
-    .rank-icon {
-        font-size: 36px;
-    }
-    
-    .rank-text {
-        font-size: 24px;
-    }
-    
     .result-stats {
         grid-template-columns: 1fr;
-        gap: 10px;
-        margin-bottom: 15px;
     }
     
-    .result-stat-item {
-        padding: 12px;
-    }
-    
-    .result-stat-label {
-        font-size: 9px;
-        margin-bottom: 5px;
-    }
-    
-    .result-stat-value {
-        font-size: 20px;
-    }
-    
-    .words-created-section {
-        max-height: 150px;
-        padding: 12px;
-        margin-bottom: 15px;
-    }
-    
-    .words-created-section h3 {
-        font-size: 13px;
-        margin-bottom: 10px;
-    }
-    
-    .words-created-section .word-item {
-        padding: 8px 10px;
-        margin-bottom: 5px;
-    }
-    
-    .result-actions {
-        gap: 8px;
-    }
-    
-    /* ゲーム画面 */
     #gameCanvas {
         height: calc(100vh - 260px);
         min-height: 350px;
@@ -1895,51 +1796,20 @@ input:checked + .toggle-slider:before {
         grid-template-columns: 1fr;
     }
     
-    .stage-clear-animation {
+    .merry-christmas-popup .popup-content {
         padding: 30px 40px;
     }
     
-    .stage-clear-title {
-        font-size: 28px;
+    .merry-christmas-popup .popup-icon {
+        font-size: 60px;
     }
     
-    .stage-clear-bonus {
+    .merry-christmas-popup .popup-title {
         font-size: 36px;
     }
     
-    .stage-number {
-        font-size: 36px;
-    }
-    
-    .stage-message {
-        font-size: 24px;
-    }
-    
-    .word-complete-animation {
-        font-size: 14px;
-        padding: 10px 20px;
-        top: 15%;
-    }
-    
-    .combo-effect {
-        font-size: 12px;
-        padding: 6px 12px;
-        top: 70px;
-        right: 10px;
-    }
-    
-    .reset-warning {
-        font-size: 14px;
-        padding: 10px 20px;
-    }
-    
-    .manual-reset-feedback {
-        font-size: 12px;
-        padding: 8px 16px;
-    }
-    
-    .points-popup {
-        font-size: 12px;
+    .merry-christmas-popup .popup-bonus {
+        font-size: 42px;
     }
 }
 
@@ -1979,234 +1849,29 @@ input:checked + .toggle-slider:before {
         font-size: 18px;
     }
     
-    /* 遊び方画面 */
-    .how-to-container {
-        padding: 12px;
-        max-height: 82vh;
+    .menu-footer {
+        flex-direction: column;
+        gap: 12px;
     }
     
-    .how-to-item {
-        padding: 15px;
+    .volume-control {
+        width: 100%;
+        justify-content: center;
     }
     
-    .how-to-icon {
-        font-size: 36px;
-        margin-bottom: 10px;
-    }
-    
-    .how-to-item h3 {
-        font-size: 15px;
-        margin-bottom: 8px;
-    }
-    
-    .how-to-item p {
+    .volume-label {
         font-size: 12px;
-        line-height: 1.4;
     }
     
-    /* スコア履歴画面 */
-    .history-container {
-        padding: 12px;
-        max-height: 82vh;
-    }
-    
-    .stats-grid {
-        grid-template-columns: 1fr;
-        gap: 8px;
-    }
-    
-    .stat-card {
-        padding: 10px;
-    }
-    
-    .stat-card .stat-icon {
-        font-size: 22px;
-        margin-bottom: 6px;
-    }
-    
-    .stat-card .stat-value {
-        font-size: 16px;
-        margin-bottom: 3px;
-    }
-    
-    .stat-card .stat-label {
-        font-size: 9px;
-    }
-    
-    .difficulty-tabs {
-        gap: 6px;
-        margin-bottom: 15px;
-    }
-    
-    .tab-btn {
-        min-width: 70px;
-        padding: 8px;
+    .volume-value {
         font-size: 11px;
     }
     
-    .history-table-container {
-        max-height: 250px;
-        margin-bottom: 12px;
+    .volume-control input[type="range"] {
+        width: 120px;
     }
     
-    .history-table th {
-        padding: 8px 5px;
-        font-size: 10px;
-    }
-    
-    .history-table td {
-        padding: 7px 5px;
-        font-size: 11px;
-    }
-    
-    .history-info p {
-        font-size: 11px;
-        margin: 6px 0;
-    }
-    
-    .history-actions {
-        gap: 6px;
-        margin-top: 12px;
-    }
-    
-    /* 単語作成画面 */
-    .word-make-container {
-        max-height: 82vh;
-        padding: 10px;
-    }
-    
-    .word-make-header {
-        gap: 8px;
-        margin-bottom: 10px;
-    }
-    
-    .word-make-info {
-        padding: 8px;
-        margin-bottom: 10px;
-    }
-    
-    .word-make-info p {
-        font-size: 12px;
-    }
-    
-    .word-section {
-        margin-bottom: 10px;
-    }
-    
-    .section-label {
-        font-size: 10px;
-        margin-bottom: 5px;
-    }
-    
-    .word-display {
-        min-height: 45px;
-        padding: 10px;
-        gap: 5px;
-    }
-    
-    .word-display .letter-badge {
-        font-size: 16px;
-        padding: 6px 10px;
-    }
-    
-    .letters-display {
-        min-height: 60px;
-        padding: 10px;
-        gap: 5px;
-    }
-    
-    .word-controls {
-        gap: 8px;
-        margin-bottom: 10px;
-    }
-    
-    .word-btn {
-        padding: 8px 14px;
-        font-size: 12px;
-        gap: 5px;
-    }
-    
-    .word-make-message {
-        min-height: 28px;
-        padding: 6px 10px;
-        font-size: 12px;
-        margin-bottom: 10px;
-    }
-    
-    .created-words-list {
-        max-height: 100px;
-        padding: 8px;
-    }
-    
-    .created-words-list .word-item {
-        padding: 6px 8px;
-        margin-bottom: 4px;
-        font-size: 13px;
-    }
-    
-    /* 結果画面 */
-    .result-container {
-        max-height: 82vh;
-        padding: 10px;
-    }
-    
-    .result-rank {
-        margin-bottom: 12px;
-    }
-    
-    .rank-badge {
-        gap: 5px;
-        padding: 10px 20px;
-    }
-    
-    .rank-icon {
-        font-size: 32px;
-    }
-    
-    .rank-text {
-        font-size: 22px;
-    }
-    
-    .result-stats {
-        gap: 8px;
-        margin-bottom: 12px;
-    }
-    
-    .result-stat-item {
-        padding: 10px;
-    }
-    
-    .result-stat-label {
-        font-size: 8px;
-        margin-bottom: 4px;
-    }
-    
-    .result-stat-value {
-        font-size: 18px;
-    }
-    
-    .words-created-section {
-        max-height: 120px;
-        padding: 10px;
-        margin-bottom: 12px;
-    }
-    
-    .words-created-section h3 {
-        font-size: 12px;
-        margin-bottom: 8px;
-    }
-    
-    .words-created-section .word-item {
-        padding: 6px 8px;
-        margin-bottom: 4px;
-        font-size: 12px;
-    }
-    
-    .result-actions {
-        gap: 6px;
-    }
-    
-    /* ゲーム画面 */
+    /* ゲームヘッダー */
     .game-header {
         padding: 10px 12px;
         flex-wrap: wrap;
@@ -2249,12 +1914,14 @@ input:checked + .toggle-slider:before {
         font-size: 28px;
     }
     
+    /* ゲームキャンバス */
     #gameCanvas {
         height: calc(100vh - 260px);
         min-height: 320px;
         max-height: 480px;
     }
     
+    /* 単語パネル */
     .word-panel {
         padding: 12px 15px;
     }
@@ -2274,6 +1941,7 @@ input:checked + .toggle-slider:before {
         font-size: 16px;
     }
     
+    /* 難易度カード */
     .difficulty-card {
         padding: 18px;
     }
@@ -2352,19 +2020,19 @@ input:checked + .toggle-slider:before {
     }
     
     .merry-christmas-popup .popup-content {
-        padding: 30px 40px;
+        padding: 20px 30px;
     }
     
     .merry-christmas-popup .popup-icon {
-        font-size: 60px;
+        font-size: 48px;
     }
     
     .merry-christmas-popup .popup-title {
-        font-size: 36px;
+        font-size: 28px;
     }
     
     .merry-christmas-popup .popup-bonus {
-        font-size: 42px;
+        font-size: 32px;
     }
 }
 
@@ -2389,216 +2057,13 @@ input:checked + .toggle-slider:before {
         margin-bottom: 12px;
     }
     
-    /* 遊び方画面 */
-    .how-to-container {
-        padding: 10px;
-        max-height: 80vh;
-    }
-    
-    .how-to-item {
-        padding: 12px;
-    }
-    
-    .how-to-icon {
-        font-size: 32px;
-        margin-bottom: 8px;
-    }
-    
-    .how-to-item h3 {
-        font-size: 14px;
-        margin-bottom: 6px;
-    }
-    
-    .how-to-item p {
-        font-size: 11px;
-        line-height: 1.3;
-    }
-    
-    /* スコア履歴画面 */
-    .history-container {
-        padding: 10px;
-        max-height: 80vh;
-    }
-    
-    .stat-card {
-        padding: 8px;
-    }
-    
-    .stat-card .stat-icon {
-        font-size: 20px;
-        margin-bottom: 5px;
-    }
-    
-    .stat-card .stat-value {
-        font-size: 15px;
-    }
-    
-    .stat-card .stat-label {
-        font-size: 8px;
-    }
-    
-    .tab-btn {
-        min-width: 60px;
-        padding: 7px;
-        font-size: 10px;
-    }
-    
-    .history-table-container {
-        max-height: 220px;
-    }
-    
-    .history-table th {
-        padding: 7px 4px;
-        font-size: 9px;
-    }
-    
-    .history-table td {
-        padding: 6px 4px;
-        font-size: 10px;
-    }
-    
-    /* 単語作成画面 */
-    .word-make-container {
-        max-height: 80vh;
-        padding: 8px;
-    }
-    
-    .word-make-header {
-        gap: 6px;
-        margin-bottom: 8px;
-    }
-    
-    .word-make-info {
-        padding: 6px;
-        margin-bottom: 8px;
-    }
-    
-    .word-make-info p {
-        font-size: 11px;
-    }
-    
-    .word-section {
-        margin-bottom: 8px;
-    }
-    
-    .section-label {
-        font-size: 9px;
-        margin-bottom: 4px;
-    }
-    
-    .word-display {
-        min-height: 40px;
-        padding: 8px;
-        gap: 4px;
-    }
-    
-    .word-display .letter-badge {
-        font-size: 14px;
-        padding: 5px 8px;
-    }
-    
-    .letters-display {
-        min-height: 50px;
-        padding: 8px;
-        gap: 4px;
-    }
-    
-    .word-controls {
-        gap: 6px;
-        margin-bottom: 8px;
-        flex-direction: column;
-    }
-    
-    .word-btn {
-        padding: 8px 12px;
-        font-size: 11px;
-        gap: 4px;
-    }
-    
-    .word-make-message {
-        min-height: 25px;
-        padding: 5px 8px;
-        font-size: 11px;
-        margin-bottom: 8px;
-    }
-    
-    .created-words-list {
-        max-height: 80px;
-        padding: 6px;
-    }
-    
-    .created-words-list .word-item {
-        padding: 5px 6px;
-        margin-bottom: 3px;
-        font-size: 12px;
-    }
-    
-    /* 結果画面 */
-    .result-container {
-        max-height: 80vh;
-        padding: 8px;
-    }
-    
-    .result-rank {
-        margin-bottom: 10px;
-    }
-    
-    .rank-badge {
-        gap: 4px;
-        padding: 8px 16px;
-    }
-    
-    .rank-icon {
-        font-size: 28px;
-    }
-    
-    .rank-text {
-        font-size: 20px;
-    }
-    
-    .result-stats {
-        gap: 6px;
-        margin-bottom: 10px;
-    }
-    
-    .result-stat-item {
-        padding: 8px;
-    }
-    
-    .result-stat-label {
-        font-size: 8px;
-        margin-bottom: 3px;
-    }
-    
-    .result-stat-value {
-        font-size: 16px;
-    }
-    
-    .words-created-section {
-        max-height: 100px;
-        padding: 8px;
-        margin-bottom: 10px;
-    }
-    
-    .words-created-section h3 {
-        font-size: 11px;
-        margin-bottom: 6px;
-    }
-    
-    .words-created-section .word-item {
-        padding: 5px 6px;
-        margin-bottom: 3px;
-        font-size: 11px;
-    }
-    
-    .result-actions {
-        gap: 5px;
-    }
-    
-    /* ゲーム画面 */
     .menu-btn {
         padding: 10px 16px;
         font-size: 12px;
+    }
+    
+    .volume-control input[type="range"] {
+        width: 100px;
     }
     
     .game-header {
@@ -2696,152 +2161,10 @@ input:checked + .toggle-slider:before {
     .countdown-text {
         font-size: 50px;
     }
-    
-    .word-complete-animation {
-        font-size: 20px;
-        padding: 15px 30px;
-    }
-    
-    .reset-warning {
-        font-size: 18px;
-        padding: 15px 30px;
-    }
-    
-    .combo-effect {
-        font-size: 28px;
-    }
-    
-    .points-popup {
-        font-size: 20px;
-    }
-    
-    .merry-christmas-popup .popup-content {
-        padding: 20px 30px;
-    }
-    
-    .merry-christmas-popup .popup-icon {
-        font-size: 48px;
-    }
-    
-    .merry-christmas-popup .popup-title {
-        font-size: 28px;
-    }
-    
-    .merry-christmas-popup .popup-bonus {
-        font-size: 32px;
-    }
 }
 
 /* 横画面対応 */
 @media (orientation: landscape) and (max-height: 600px) {
-    .how-to-container,
-    .history-container,
-    .word-make-container,
-    .result-container {
-        max-height: 75vh;
-        padding: 10px;
-    }
-    
-    .section-title {
-        font-size: 20px;
-        margin-bottom: 10px;
-    }
-    
-    .how-to-content {
-        gap: 10px;
-    }
-    
-    .how-to-item {
-        padding: 12px;
-    }
-    
-    .how-to-icon {
-        font-size: 30px;
-        margin-bottom: 6px;
-    }
-    
-    .how-to-item h3 {
-        font-size: 14px;
-        margin-bottom: 5px;
-    }
-    
-    .how-to-item p {
-        font-size: 11px;
-        line-height: 1.3;
-    }
-    
-    .stats-grid {
-        gap: 8px;
-    }
-    
-    .stat-card {
-        padding: 8px;
-    }
-    
-    .stat-card .stat-icon {
-        font-size: 20px;
-        margin-bottom: 4px;
-    }
-    
-    .stat-card .stat-value {
-        font-size: 16px;
-    }
-    
-    .stat-card .stat-label {
-        font-size: 9px;
-    }
-    
-    .history-table-container {
-        max-height: 200px;
-    }
-    
-    .history-table th,
-    .history-table td {
-        padding: 6px 4px;
-        font-size: 10px;
-    }
-    
-    /* 単語作成画面 */
-    .word-make-header {
-        gap: 8px;
-        margin-bottom: 8px;
-    }
-    
-    .word-section {
-        margin-bottom: 8px;
-    }
-    
-    .word-display {
-        min-height: 40px;
-        padding: 10px;
-    }
-    
-    .letters-display {
-        min-height: 50px;
-        padding: 10px;
-    }
-    
-    .created-words-list {
-        max-height: 80px;
-    }
-    
-    /* 結果画面 */
-    .result-rank {
-        margin-bottom: 10px;
-    }
-    
-    .result-stats {
-        grid-template-columns: repeat(2, 1fr);
-        gap: 8px;
-        margin-bottom: 10px;
-    }
-    
-    .words-created-section {
-        max-height: 100px;
-        margin-bottom: 10px;
-    }
-    
-    /* ゲーム画面 */
     .game-header {
         padding: 8px 12px;
     }
@@ -2885,102 +2208,6 @@ input:checked + .toggle-slider:before {
     .letter-badge {
         padding: 6px 10px;
         font-size: 14px;
-    }
-}
-
-/* 横画面・非常に低い画面（500px以下） */
-@media (orientation: landscape) and (max-height: 500px) {
-    .word-make-container,
-    .result-container {
-        max-height: 70vh;
-        padding: 8px;
-    }
-    
-    .word-make-header {
-        gap: 6px;
-        margin-bottom: 6px;
-    }
-    
-    .word-section {
-        margin-bottom: 6px;
-    }
-    
-    .word-display {
-        min-height: 35px;
-        padding: 8px;
-    }
-    
-    .letters-display {
-        min-height: 40px;
-        padding: 8px;
-    }
-    
-    .created-words-list {
-        max-height: 60px;
-    }
-    
-    .result-rank {
-        margin-bottom: 8px;
-    }
-    
-    .result-stats {
-        grid-template-columns: repeat(3, 1fr);
-        gap: 6px;
-        margin-bottom: 8px;
-    }
-    
-    .words-created-section {
-        max-height: 80px;
-        margin-bottom: 8px;
-    }
-    
-    .game-header {
-        padding: 5px 8px;
-    }
-    
-    .stat-box {
-        padding: 4px 6px;
-        gap: 4px;
-    }
-    
-    .stat-icon {
-        font-size: 12px;
-    }
-    
-    .stat-value {
-        font-size: 11px;
-    }
-    
-    .score-value {
-        font-size: 18px;
-    }
-    
-    #gameCanvas {
-        height: calc(100vh - 150px);
-        min-height: 180px;
-    }
-    
-    .word-panel {
-        padding: 6px 10px;
-    }
-    
-    .panel-header {
-        margin-bottom: 6px;
-    }
-    
-    .panel-title {
-        font-size: 9px;
-    }
-    
-    .letters-grid {
-        min-height: 28px;
-        padding: 5px;
-        gap: 3px;
-    }
-    
-    .letter-badge {
-        padding: 4px 6px;
-        font-size: 12px;
     }
 }
 
@@ -3053,15 +2280,6 @@ input:checked + .toggle-slider:before {
     }
 }
 
-/* iPhone 12/13 Pro Max（428x926）対応 */
-@media (min-width: 400px) and (max-width: 430px) and (min-height: 900px) {
-    #gameCanvas {
-        height: calc(100vh - 270px);
-        min-height: 450px;
-        max-height: 550px;
-    }
-}
-
 /* Galaxy Fold（280x653）対応 */
 @media (max-width: 280px) {
     .container {
@@ -3074,6 +2292,10 @@ input:checked + .toggle-slider:before {
     
     .section-title {
         font-size: 18px;
+    }
+    
+    .volume-control input[type="range"] {
+        width: 80px;
     }
     
     .game-header {
