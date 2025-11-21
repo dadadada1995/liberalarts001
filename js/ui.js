@@ -384,29 +384,32 @@ class UIManager {
                 this.elements.availableLettersDisplay.innerHTML = 
                     '<span class="empty-message">利用可能な文字がありません</span>';
             } else {
-                // アルファベット順にソート
-                const sortedLetters = [...availableLetters].sort();
-                const sortedUsedLetters = [...usedLetters].sort();
+                // 利用可能な文字と使用中の文字を統合してアルファベット順にソート
+                const allLetters = [
+                    ...availableLetters.map(letter => ({ letter, available: true })),
+                    ...usedLetters.map(letter => ({ letter, available: false }))
+                ].sort((a, b) => a.letter.localeCompare(b.letter));
                 
-                // 利用可能な文字を表示
-                sortedLetters.forEach(letter => {
+                // 統合された配列から表示
+                allLetters.forEach(item => {
                     const badge = document.createElement('div');
-                    badge.className = 'letter-badge clickable';
-                    badge.textContent = letter.toUpperCase();
-                    badge.onclick = () => {
-                        if (window.game && window.game.currentPhase === 'wordMake') {
-                            window.game.addLetterToWord(letter);
-                        }
-                    };
-                    this.elements.availableLettersDisplay.appendChild(badge);
-                });
-                
-                // 使用中の文字を「使用済み」として表示
-                sortedUsedLetters.forEach(letter => {
-                    const badge = document.createElement('div');
-                    badge.className = 'letter-badge used';
-                    badge.textContent = letter.toUpperCase();
-                    badge.title = '使用中';
+                    
+                    if (item.available) {
+                        // 利用可能な文字
+                        badge.className = 'letter-badge clickable';
+                        badge.textContent = item.letter.toUpperCase();
+                        badge.onclick = () => {
+                            if (window.game && window.game.currentPhase === 'wordMake') {
+                                window.game.addLetterToWord(item.letter);
+                            }
+                        };
+                    } else {
+                        // 使用中の文字
+                        badge.className = 'letter-badge used';
+                        badge.textContent = item.letter.toUpperCase();
+                        badge.title = '使用中';
+                    }
+                    
                     this.elements.availableLettersDisplay.appendChild(badge);
                 });
             }
