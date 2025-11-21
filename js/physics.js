@@ -297,6 +297,12 @@ class PhysicsEngine {
         });
         this.blocks = [];
         
+        // グラデーションキャッシュをクリア（特別ステージ用に再生成）
+        if (isSpecialStage) {
+            this.cachedGradients.delete('christmas_red');
+            this.cachedGradients.delete('christmas_green');
+        }
+        
         console.log(isSpecialStage ? '🎄 Creating Christmas special stage blocks...' : '🧱 Creating new blocks...');
         
         const config = isSpecialStage ? CONFIG.SPECIAL_STAGE : CONFIG.BLOCKS;
@@ -588,7 +594,7 @@ class PhysicsEngine {
         }
     }
     
-    // 軽量3Dブロック描画
+    // 軽量3Dブロック描画（最適化版）
     drawLightBlock(block, time) {
         const pos = block.position;
         const w = CONFIG.BLOCKS.WIDTH;
@@ -597,59 +603,46 @@ class PhysicsEngine {
         this.ctx.save();
         this.ctx.translate(pos.x, pos.y);
         
+        // パルスアニメーションを簡略化
         const pulse = Math.sin(time * 2 + block.animationOffset) * 0.02 + 1;
         this.ctx.scale(pulse, pulse);
         
         if (block.isSpecialStage) {
-            // クリスマス特別ステージ用のブロック（赤と緑）
+            // クリスマス特別ステージ用のブロック（超軽量版）
             const isRed = block.christmasColor === 'red';
             
-            // 影
-            this.ctx.fillStyle = isRed ? 'rgba(139, 0, 0, 0.4)' : 'rgba(0, 100, 0, 0.4)';
+            // 影（簡略化）
+            this.ctx.fillStyle = isRed ? 'rgba(139, 0, 0, 0.3)' : 'rgba(0, 100, 0, 0.3)';
             this.ctx.fillRect(-w/2 + 2, -h/2 + 2, w, h);
             
-            // メイン面（クリスマスカラーのグラデーション）
-            const gradient = this.ctx.createLinearGradient(-w/2, -h/2, w/2, h/2);
-            if (isRed) {
-                gradient.addColorStop(0, '#ff4444');
-                gradient.addColorStop(1, '#cc0000');
-            } else {
-                gradient.addColorStop(0, '#44ff44');
-                gradient.addColorStop(1, '#008800');
+            // メイン面（キャッシュされたグラデーション）
+            const cacheKey = isRed ? 'christmas_red' : 'christmas_green';
+            let gradient = this.cachedGradients.get(cacheKey);
+            if (!gradient) {
+                gradient = this.ctx.createLinearGradient(-w/2, -h/2, w/2, h/2);
+                if (isRed) {
+                    gradient.addColorStop(0, '#ff4444');
+                    gradient.addColorStop(1, '#cc0000');
+                } else {
+                    gradient.addColorStop(0, '#44ff44');
+                    gradient.addColorStop(1, '#008800');
+                }
+                this.cachedGradients.set(cacheKey, gradient);
             }
             this.ctx.fillStyle = gradient;
             this.ctx.fillRect(-w/2, -h/2, w, h);
             
-            // キラキラ効果
-            this.ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
-            this.ctx.beginPath();
-            this.ctx.arc(-w/4, -h/4, 3, 0, Math.PI * 2);
-            this.ctx.fill();
+            // ハイライトのみ（装飾を最小限に）
+            this.ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
+            this.ctx.fillRect(-w/2, -h/2, w * 0.3, h * 0.2);
             
-            // 雪の結晶模様（白）
-            this.ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
-            this.ctx.lineWidth = 1.5;
-            this.ctx.beginPath();
-            this.ctx.moveTo(-w/4, 0);
-            this.ctx.lineTo(w/4, 0);
-            this.ctx.moveTo(0, -h/4);
-            this.ctx.lineTo(0, h/4);
-            this.ctx.stroke();
-            
-            // ハイライト
-            this.ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
-            this.ctx.fillRect(-w/2, -h/2, w * 0.4, h * 0.3);
-            
-            // 文字（白色で見やすく）
+            // 文字（シャドウなし）
             if (block.letter) {
                 this.ctx.fillStyle = '#ffffff';
                 this.ctx.font = 'bold 16px Arial';
                 this.ctx.textAlign = 'center';
                 this.ctx.textBaseline = 'middle';
-                this.ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
-                this.ctx.shadowBlur = 3;
                 this.ctx.fillText(block.letter, 0, 0);
-                this.ctx.shadowBlur = 0;
             }
         } else {
             // 通常ブロック
