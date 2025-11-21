@@ -1,4 +1,4 @@
-// ゲームメインクラス（修正版）
+// ゲームメインクラス（BGM制御追加版）
 class Game {
     constructor() {
         console.log('🎮 Game initializing...');
@@ -8,8 +8,8 @@ class Game {
         this.difficulty = 'easy';
         
         this.currentPhase = 'setup';
-        this.isPaused = false; // 一時停止フラグ追加
-        this.isSpecialStage = false; // 特別ステージフラグ追加
+        this.isPaused = false;
+        this.isSpecialStage = false;
         
         this.blockBreakScore = 0;
         this.blockBreakTime = CONFIG.BLOCK_BREAK_TIME;
@@ -188,6 +188,11 @@ class Game {
         if (this.physics && this.physics.ball) {
             Matter.Body.setVelocity(this.physics.ball, { x: 0, y: 0 });
         }
+        
+        // BGMを一時停止
+        if (window.soundManager) {
+            window.soundManager.pauseBGM();
+        }
     }
     
     resumeGame() {
@@ -207,6 +212,11 @@ class Game {
         
         // タイマーを再開
         this.startTimer();
+        
+        // BGMを再開
+        if (window.soundManager) {
+            window.soundManager.resumeBGM();
+        }
     }
     
     startBlockBreakPhase() {
@@ -217,7 +227,7 @@ class Game {
         this.ballsLeft = CONFIG.INITIAL_BALLS;
         this.collectedLetters = [];
         this.combo = 0;
-        this.isSpecialStage = false; // 通常ステージから開始
+        this.isSpecialStage = false;
         
         this.ui.showScreen('game');
         
@@ -235,6 +245,11 @@ class Game {
         }
         if (window.particleSystem) {
             window.particleSystem.setGamePlaying(true);
+        }
+        
+        // BGMを再生
+        if (window.soundManager) {
+            window.soundManager.playBGM();
         }
         
         this.setupGameControls();
@@ -290,7 +305,6 @@ class Game {
                     this.gameLoopId = null;
                 }
                 if (this.isPaused) {
-                    // 一時停止中は次のフレームを待つ
                     this.gameLoopId = requestAnimationFrame(gameLoop);
                 }
                 return;
@@ -318,7 +332,7 @@ class Game {
     
     startTimer() {
         this.timerInterval = setInterval(() => {
-            if (this.isPaused) return; // 一時停止中はタイマーを進めない
+            if (this.isPaused) return;
             
             this.blockBreakTime--;
             this.ui.updateTimer(this.blockBreakTime);
@@ -373,7 +387,6 @@ class Game {
         this.totalBlocksDestroyed++;
         this.ui.updateScore(this.blockBreakScore);
         
-        // パーティクルエフェクトを最小限に
         if (window.particleSystem && this.combo % 3 === 0) {
             window.particleSystem.createExplosion(
                 block.position.x,
@@ -391,7 +404,6 @@ class Game {
         
         this.physics.removeBlock(block);
         
-        // ステージクリア処理
         if (this.physics.blocks.length === 0) {
             this.onStageComplete();
         }
@@ -410,10 +422,8 @@ class Game {
         this.blockBreakScore += CONFIG.SCORE.SANTA_BLOCK_BONUS;
         this.ui.updateScore(this.blockBreakScore);
         
-        // ゲームを一時停止
         this.pauseGame();
         
-        // メリークリスマスポップアップを表示
         this.showMerryChristmasPopup();
         
         this.physics.removeSantaBlock();
@@ -422,11 +432,10 @@ class Game {
             window.soundManager.playStageComplete();
         }
         
-        // 3秒後にカウントダウン画面に移行して特別ステージ開始
         setTimeout(() => {
-            this.isSpecialStage = true; // 特別ステージフラグを立てる
+            this.isSpecialStage = true;
             this.ui.showScreen('countdown');
-            this.countdown(true); // 再開用のカウントダウン
+            this.countdown(true);
         }, 3000);
     }
     
@@ -459,7 +468,6 @@ class Game {
             console.log(`🎮 Starting Stage ${this.stageCount}`);
             
             if (this.physics) {
-                // 特別ステージかどうかで分岐
                 this.physics.createBlocks(this.isSpecialStage);
                 console.log(`✅ Stage ${this.stageCount}: ${this.physics.blocks.length} blocks created`);
             }
@@ -576,6 +584,11 @@ class Game {
         }
         if (window.particleSystem) {
             window.particleSystem.setGamePlaying(false);
+        }
+        
+        // BGMを一時停止（単語作成フェーズ中も継続）
+        if (window.soundManager) {
+            window.soundManager.pauseBGM();
         }
         
         this.removeGameControls();
@@ -710,6 +723,11 @@ class Game {
     async showResult() {
         console.log('📊 Showing result screen');
         
+        // BGMを停止
+        if (window.soundManager) {
+            window.soundManager.stopBGM();
+        }
+        
         const totalScore = this.blockBreakScore + this.wordMakeScore;
         
         await this.ui.showResult(
@@ -752,6 +770,11 @@ class Game {
             window.particleSystem.setGamePlaying(false);
         }
         
+        // BGMを停止
+        if (window.soundManager) {
+            window.soundManager.stopBGM();
+        }
+        
         if (this.physics && this.physics.cachedGradients) {
             this.physics.cachedGradients.clear();
         }
@@ -775,7 +798,7 @@ class Game {
         this.santaSpawned = false;
         this.isPlaying = false;
         
-        this.ui.showScreen('setup'); // loginからsetupに変更
+        this.ui.showScreen('setup');
         
         console.log('✅ Game reset complete');
     }
