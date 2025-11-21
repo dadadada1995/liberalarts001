@@ -455,12 +455,16 @@ class PhysicsEngine {
         return this.ball.position.y > this.canvas.height + 20;
     }
     
-    resetBall() {
-        if (this.ball) {
-            Matter.World.remove(this.world, this.ball);
-        }
-        this.createBall();
+resetBall() {
+    if (this.ball) {
+        Matter.World.remove(this.world, this.ball);
     }
+    
+    // 現在のCONFIG設定を使用してボールを作成
+    console.log('🔄 Resetting ball with speed:', CONFIG.PHYSICS.BALL_SPEED);
+    this.createBall();
+}
+
     
     start() {
         Matter.Engine.run(this.engine);

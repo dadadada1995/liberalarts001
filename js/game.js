@@ -1,4 +1,4 @@
-// ゲームメインクラス（BGM制御追加版）
+// ゲームメインクラス（BGM制御追加版・サンタ撃破後スピード維持版）
 class Game {
     constructor() {
         console.log('🎮 Game initializing...');
@@ -199,23 +199,32 @@ class Game {
     }
     
     resumeGame() {
-        console.log('▶️ Game resumed');
+        console.log('▶️ Game resumed after santa defeat');
         this.isPaused = false;
         
         // ゲーム画面に戻る
         this.ui.showScreen('game');
         
-        // 保存された難易度設定を再適用（スピードを維持）
+        // 保存された難易度設定を強制的に再適用（最重要）
         if (this.difficultySettings) {
             CONFIG.PHYSICS.BALL_SPEED = this.difficultySettings.ballSpeed;
             CONFIG.PHYSICS.BALL_MAX_SPEED = this.difficultySettings.ballMaxSpeed;
+            CONFIG.PHYSICS.BALL_MIN_SPEED = this.difficultySettings.ballSpeed * 0.6; // 最小速度も調整
             CONFIG.PHYSICS.PADDLE_WIDTH = this.difficultySettings.paddleWidth;
-            console.log('⚙️ Difficulty settings restored:', this.difficultySettings);
+            console.log('⚙️ Difficulty settings forcefully restored:', this.difficultySettings);
+            console.log('✅ Ball speed set to:', CONFIG.PHYSICS.BALL_SPEED);
+            console.log('✅ Ball max speed set to:', CONFIG.PHYSICS.BALL_MAX_SPEED);
+            console.log('✅ Ball min speed set to:', CONFIG.PHYSICS.BALL_MIN_SPEED);
         }
         
-        // ボールをリセット（保存された難易度設定でボールを作成）
+        // 特別ステージのブロックを生成
         if (this.physics) {
+            this.physics.createBlocks(this.isSpecialStage);
+            console.log(`✅ Special stage blocks created: ${this.physics.blocks.length} blocks`);
+            
+            // ボールをリセット（難易度設定適用後）
             this.physics.resetBall();
+            console.log('✅ Ball reset with speed:', CONFIG.PHYSICS.BALL_SPEED);
         }
         
         // ゲームループを再開
@@ -293,6 +302,11 @@ class Game {
         this.keyHandler = (e) => {
             if (e.key === 'r' || e.key === 'R') {
                 if (this.physics && this.ballsLeft > 0 && !this.isPaused) {
+                    // 難易度設定を確認してからリセット
+                    if (this.difficultySettings) {
+                        CONFIG.PHYSICS.BALL_SPEED = this.difficultySettings.ballSpeed;
+                        CONFIG.PHYSICS.BALL_MAX_SPEED = this.difficultySettings.ballMaxSpeed;
+                    }
                     this.physics.resetBall();
                     this.showManualResetFeedback();
                 }
@@ -444,7 +458,15 @@ class Game {
         }
         
         setTimeout(() => {
+            // 特別ステージフラグをセット
             this.isSpecialStage = true;
+            
+            // 難易度設定を確認（念のため）
+            if (this.difficultySettings) {
+                console.log('🎅 Before special stage - Ball speed:', this.difficultySettings.ballSpeed);
+                console.log('🎅 Current CONFIG.PHYSICS.BALL_SPEED:', CONFIG.PHYSICS.BALL_SPEED);
+            }
+            
             this.ui.showScreen('countdown');
             this.countdown(true);
         }, 3000);
@@ -478,16 +500,27 @@ class Game {
         setTimeout(() => {
             console.log(`🎮 Starting Stage ${this.stageCount}`);
             
-            // 難易度設定を再確認（スピードを維持）
+            // 難易度設定を強制的に再適用（スピードを維持）
             if (this.difficultySettings) {
                 CONFIG.PHYSICS.BALL_SPEED = this.difficultySettings.ballSpeed;
                 CONFIG.PHYSICS.BALL_MAX_SPEED = this.difficultySettings.ballMaxSpeed;
-                console.log('✅ Speed maintained:', CONFIG.PHYSICS.BALL_SPEED);
+                CONFIG.PHYSICS.BALL_MIN_SPEED = this.difficultySettings.ballSpeed * 0.6;
+                CONFIG.PHYSICS.PADDLE_WIDTH = this.difficultySettings.paddleWidth;
+                console.log('✅ Speed maintained for stage:', CONFIG.PHYSICS.BALL_SPEED);
+                console.log('✅ Max speed:', CONFIG.PHYSICS.BALL_MAX_SPEED);
+                console.log('✅ Min speed:', CONFIG.PHYSICS.BALL_MIN_SPEED);
             }
             
             if (this.physics) {
                 this.physics.createBlocks(this.isSpecialStage);
                 console.log(`✅ Stage ${this.stageCount}: ${this.physics.blocks.length} blocks created`);
+                
+                // ブロック作成後、再度難易度設定を確認
+                if (this.difficultySettings) {
+                    CONFIG.PHYSICS.BALL_SPEED = this.difficultySettings.ballSpeed;
+                    CONFIG.PHYSICS.BALL_MAX_SPEED = this.difficultySettings.ballMaxSpeed;
+                    console.log('✅ Double-check: Speed is', CONFIG.PHYSICS.BALL_SPEED);
+                }
             }
             
             this.santaSpawned = false;
@@ -568,6 +601,7 @@ class Game {
                     if (this.difficultySettings) {
                         CONFIG.PHYSICS.BALL_SPEED = this.difficultySettings.ballSpeed;
                         CONFIG.PHYSICS.BALL_MAX_SPEED = this.difficultySettings.ballMaxSpeed;
+                        console.log('✅ Ball lost - Speed restored to:', CONFIG.PHYSICS.BALL_SPEED);
                     }
                     this.physics.resetBall();
                 }
