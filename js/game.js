@@ -1,4 +1,4 @@
-// ゲームメインクラス（BGM制御追加版・サンタ撃破後スピード維持版）
+// ゲームメインクラス（ボールリセット機能削除版）
 class Game {
     constructor() {
         console.log('🎮 Game initializing...');
@@ -299,23 +299,10 @@ class Game {
             this.physics.movePaddle(touchX);
         };
         
-        this.keyHandler = (e) => {
-            if (e.key === 'r' || e.key === 'R') {
-                if (this.physics && this.ballsLeft > 0 && !this.isPaused) {
-                    // 難易度設定を確認してからリセット
-                    if (this.difficultySettings) {
-                        CONFIG.PHYSICS.BALL_SPEED = this.difficultySettings.ballSpeed;
-                        CONFIG.PHYSICS.BALL_MAX_SPEED = this.difficultySettings.ballMaxSpeed;
-                    }
-                    this.physics.resetBall();
-                    this.showManualResetFeedback();
-                }
-            }
-        };
+        // Rキーによるボールリセット機能を削除
         
         canvas.addEventListener('mousemove', this.mouseMoveHandler, { passive: true });
         canvas.addEventListener('touchmove', this.touchMoveHandler, { passive: false });
-        document.addEventListener('keydown', this.keyHandler, { passive: true });
     }
     
     startGameLoop() {
@@ -569,21 +556,6 @@ class Game {
         }, 1500);
     }
     
-    showManualResetFeedback() {
-        const feedback = document.createElement('div');
-        feedback.className = 'manual-reset-feedback';
-        feedback.textContent = 'BALL RESET';
-        document.body.appendChild(feedback);
-        
-        setTimeout(() => {
-            feedback.remove();
-        }, 800);
-        
-        if (window.soundManager) {
-            window.soundManager.playResetWarning();
-        }
-    }
-    
     onBallLost() {
         console.log('❌ Ball lost!');
         
@@ -658,9 +630,7 @@ class Game {
             canvas.removeEventListener('mousemove', this.mouseMoveHandler);
             canvas.removeEventListener('touchmove', this.touchMoveHandler);
         }
-        if (this.keyHandler) {
-            document.removeEventListener('keydown', this.keyHandler);
-        }
+        // keyHandlerは削除されたのでremoveEventListenerも不要
     }
     
     startWordMakePhase() {
