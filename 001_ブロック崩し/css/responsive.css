@@ -1,0 +1,967 @@
+/* レスポンシブデザイン */
+
+/* タブレット（768px以下） */
+@media (max-width: 768px) {
+    .logo-title {
+        font-size: 36px;
+    }
+    
+    .section-title {
+        font-size: 28px;
+    }
+    
+    .how-to-content {
+        grid-template-columns: 1fr;
+    }
+    
+    .result-stats {
+        grid-template-columns: 1fr;
+    }
+    
+    #gameCanvas {
+        height: calc(100vh - 260px);
+        min-height: 350px;
+    }
+    
+    .difficulty-selector {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* スマートフォン（480px以下） */
+@media (max-width: 480px) {
+    .container {
+        padding: 30px 20px;
+        width: 95%;
+    }
+    
+    .logo-icon {
+        font-size: 60px;
+    }
+    
+    .logo-title {
+        font-size: 30px;
+        letter-spacing: 2px;
+    }
+    
+    .logo-subtitle {
+        font-size: 11px;
+        letter-spacing: 3px;
+    }
+    
+    .section-title {
+        font-size: 24px;
+        letter-spacing: 1.5px;
+    }
+    
+    .menu-btn {
+        padding: 15px 25px;
+        font-size: 14px;
+    }
+    
+    .btn-icon {
+        font-size: 18px;
+    }
+    
+    /* ゲームヘッダー */
+    .game-header {
+        padding: 10px 12px;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+    
+    .header-left,
+    .header-right {
+        gap: 8px;
+    }
+    
+    .header-center {
+        width: 100%;
+        order: -1;
+        margin-bottom: 8px;
+    }
+    
+    .stat-box {
+        padding: 6px 10px;
+        gap: 6px;
+    }
+    
+    .stat-icon {
+        font-size: 16px;
+    }
+    
+    .stat-label {
+        font-size: 9px;
+    }
+    
+    .stat-value {
+        font-size: 16px;
+    }
+    
+    .score-label {
+        font-size: 11px;
+    }
+    
+    .score-value {
+        font-size: 28px;
+    }
+    
+    /* ゲームキャンバス */
+    #gameCanvas {
+        height: calc(100vh - 260px);
+        min-height: 320px;
+        max-height: 480px;
+    }
+    
+    /* 単語パネル */
+    .word-panel {
+        padding: 12px 15px;
+    }
+    
+    .panel-title {
+        font-size: 11px;
+    }
+    
+    .block-counter {
+        font-size: 12px;
+        padding: 3px 10px;
+    }
+    
+    .letters-grid {
+        padding: 10px;
+        gap: 6px;
+        min-height: 45px;
+    }
+    
+    .letter-badge {
+        padding: 8px 12px;
+        font-size: 16px;
+    }
+    
+    .hint-text {
+        font-size: 12px;
+        padding: 6px 12px;
+    }
+    
+    /* 難易度カード */
+    .difficulty-card {
+        padding: 18px;
+    }
+    
+    .card-icon {
+        font-size: 28px;
+    }
+    
+    .card-title {
+        font-size: 16px;
+    }
+    
+    .card-desc {
+        font-size: 11px;
+    }
+    
+    /* ランキング */
+    .ranking-item {
+        padding: 12px 15px;
+        gap: 12px;
+    }
+    
+    .ranking-position {
+        font-size: 20px;
+        min-width: 35px;
+    }
+    
+    .ranking-name {
+        font-size: 14px;
+    }
+    
+    .ranking-details {
+        font-size: 11px;
+    }
+    
+    .ranking-score {
+        font-size: 20px;
+    }
+    
+    /* 結果画面 */
+    .rank-badge {
+        padding: 15px 30px;
+        gap: 10px;
+    }
+    
+    .rank-icon {
+        font-size: 36px;
+    }
+    
+    .rank-text {
+        font-size: 24px;
+    }
+    
+    .result-stat-item {
+        padding: 16px;
+    }
+    
+    .result-stat-label {
+        font-size: 10px;
+    }
+    
+    .result-stat-value {
+        font-size: 24px;
+    }
+    
+    .words-created-section {
+        padding: 15px;
+        max-height: 200px;
+    }
+    
+    .word-item {
+        padding: 10px 12px;
+    }
+    
+    .word-text {
+        font-size: 14px;
+    }
+    
+    .word-score {
+        font-size: 14px;
+    }
+    
+    /* アニメーション */
+    .word-complete-animation {
+        font-size: 24px;
+        padding: 20px 40px;
+    }
+    
+    .combo-effect {
+        font-size: 36px;
+    }
+    
+    .countdown-circle {
+        width: 150px;
+        height: 150px;
+    }
+    
+    .countdown-text {
+        font-size: 60px;
+    }
+}
+
+/* 横画面対応 */
+@media (orientation: landscape) and (max-height: 600px) {
+    .game-header {
+        padding: 8px 12px;
+    }
+    
+    .header-center {
+        width: auto;
+        order: 0;
+        margin-bottom: 0;
+    }
+    
+    .stat-box {
+        padding: 6px 10px;
+    }
+    
+    .stat-value {
+        font-size: 14px;
+    }
+    
+    .score-label {
+        font-size: 10px;
+    }
+    
+    .score-value {
+        font-size: 24px;
+    }
+    
+    #gameCanvas {
+        height: calc(100vh - 200px);
+        min-height: 250px;
+    }
+    
+    .word-panel {
+        padding: 10px 12px;
+    }
+    
+    .letters-grid {
+        min-height: 35px;
+        padding: 8px;
+    }
+    
+    .letter-badge {
+        padding: 6px 10px;
+        font-size: 14px;
+    }
+    
+    .hint-text {
+        font-size: 11px;
+        padding: 5px 10px;
+    }
+}
+
+/* 小さい画面（360px以下） */
+@media (max-width: 360px) {
+    .container {
+        padding: 25px 15px;
+        width: 96%;
+    }
+    
+    .logo-title {
+        font-size: 26px;
+        letter-spacing: 1.5px;
+    }
+    
+    .logo-subtitle {
+        font-size: 10px;
+        letter-spacing: 2px;
+    }
+    
+    .menu-btn {
+        padding: 12px 20px;
+        font-size: 13px;
+    }
+    
+    .btn-icon {
+        font-size: 16px;
+    }
+    
+    .btn-text {
+        font-size: 13px;
+    }
+    
+    /* ゲームヘッダー */
+    .game-header {
+        padding: 8px 10px;
+    }
+    
+    .stat-box {
+        padding: 5px 8px;
+        gap: 5px;
+    }
+    
+    .stat-icon {
+        font-size: 14px;
+    }
+    
+    .stat-label {
+        font-size: 8px;
+    }
+    
+    .stat-value {
+        font-size: 14px;
+    }
+    
+    .score-label {
+        font-size: 10px;
+    }
+    
+    .score-value {
+        font-size: 24px;
+    }
+    
+    /* ゲームキャンバス */
+    #gameCanvas {
+        height: calc(100vh - 240px);
+        min-height: 300px;
+        max-height: 450px;
+    }
+    
+    /* 単語パネル */
+    .word-panel {
+        padding: 10px 12px;
+    }
+    
+    .panel-title {
+        font-size: 10px;
+    }
+    
+    .block-counter {
+        font-size: 11px;
+        padding: 3px 8px;
+    }
+    
+    .letters-grid {
+        padding: 8px;
+        gap: 5px;
+        min-height: 40px;
+    }
+    
+    .letter-badge {
+        padding: 6px 10px;
+        font-size: 14px;
+    }
+    
+    .hint-text {
+        font-size: 11px;
+        padding: 5px 10px;
+    }
+    
+    /* 難易度カード */
+    .difficulty-card {
+        padding: 15px;
+    }
+    
+    .card-icon {
+        font-size: 24px;
+    }
+    
+    .card-title {
+        font-size: 15px;
+    }
+    
+    .card-desc {
+        font-size: 10px;
+    }
+    
+    /* 遊び方 */
+    .how-to-item {
+        padding: 20px;
+    }
+    
+    .how-to-icon {
+        font-size: 40px;
+    }
+    
+    .how-to-item h3 {
+        font-size: 16px;
+    }
+    
+    .how-to-item p {
+        font-size: 13px;
+    }
+    
+    /* ランキング */
+    .difficulty-tabs {
+        gap: 8px;
+    }
+    
+    .tab-btn {
+        padding: 10px;
+        font-size: 11px;
+    }
+    
+    .ranking-item {
+        padding: 10px 12px;
+        gap: 10px;
+    }
+    
+    .ranking-position {
+        font-size: 18px;
+        min-width: 30px;
+    }
+    
+    .ranking-name {
+        font-size: 13px;
+    }
+    
+    .ranking-details {
+        font-size: 10px;
+    }
+    
+    .ranking-score {
+        font-size: 18px;
+    }
+    
+    /* 結果画面 */
+    .rank-badge {
+        padding: 12px 25px;
+        gap: 8px;
+    }
+    
+    .rank-icon {
+        font-size: 32px;
+    }
+    
+    .rank-text {
+        font-size: 22px;
+    }
+    
+    .result-stat-item {
+        padding: 15px;
+    }
+    
+    .result-stat-label {
+        font-size: 10px;
+    }
+    
+    .result-stat-value {
+        font-size: 22px;
+    }
+    
+    .words-created-section {
+        padding: 12px;
+        max-height: 180px;
+    }
+    
+    .words-created-section h3 {
+        font-size: 14px;
+    }
+    
+    .word-item {
+        padding: 8px 10px;
+    }
+    
+    .word-text {
+        font-size: 13px;
+    }
+    
+    .word-score {
+        font-size: 13px;
+    }
+    
+    .setup-actions {
+        flex-direction: column;
+    }
+}
+
+/* 非常に小さい画面（320px以下） */
+@media (max-width: 320px) {
+    .container {
+        padding: 20px 12px;
+        width: 98%;
+    }
+    
+    .logo-title {
+        font-size: 24px;
+        letter-spacing: 1px;
+    }
+    
+    .logo-icon {
+        font-size: 50px;
+    }
+    
+    .section-title {
+        font-size: 20px;
+    }
+    
+    /* ゲームヘッダー */
+    .game-header {
+        padding: 6px 8px;
+    }
+    
+    .header-center {
+        width: 100%;
+        order: -1;
+        margin-bottom: 6px;
+    }
+    
+    .stat-box {
+        padding: 4px 6px;
+        gap: 4px;
+    }
+    
+    .stat-icon {
+        font-size: 12px;
+    }
+    
+    .stat-label {
+        font-size: 7px;
+    }
+    
+    .stat-value {
+        font-size: 12px;
+    }
+    
+    .score-label {
+        font-size: 9px;
+    }
+    
+    .score-value {
+        font-size: 22px;
+    }
+    
+    /* ゲームキャンバス */
+    #gameCanvas {
+        height: calc(100vh - 220px);
+        min-height: 280px;
+        max-height: 400px;
+    }
+    
+    /* 単語パネル */
+    .word-panel {
+        padding: 8px 10px;
+    }
+    
+    .panel-header {
+        margin-bottom: 8px;
+    }
+    
+    .panel-title {
+        font-size: 9px;
+    }
+    
+    .block-counter {
+        font-size: 10px;
+        padding: 2px 6px;
+    }
+    
+    .letters-grid {
+        padding: 6px;
+        gap: 4px;
+        min-height: 35px;
+    }
+    
+    .letter-badge {
+        padding: 5px 8px;
+        font-size: 13px;
+    }
+    
+    .hint-text {
+        font-size: 10px;
+        padding: 4px 8px;
+    }
+    
+    /* メニューボタン */
+    .menu-btn {
+        padding: 12px 18px;
+        font-size: 12px;
+        gap: 8px;
+    }
+    
+    .btn-icon {
+        font-size: 16px;
+    }
+    
+    .btn-text {
+        font-size: 12px;
+    }
+    
+    /* 難易度カード */
+    .difficulty-card {
+        padding: 12px;
+    }
+    
+    .card-icon {
+        font-size: 22px;
+        margin-bottom: 8px;
+    }
+    
+    .card-title {
+        font-size: 14px;
+        margin-bottom: 6px;
+    }
+    
+    .card-desc {
+        font-size: 10px;
+    }
+    
+    /* 入力フィールド */
+    .game-input {
+        padding: 12px 15px;
+        font-size: 14px;
+    }
+    
+    /* ランキング */
+    .difficulty-tabs {
+        gap: 6px;
+        flex-wrap: wrap;
+    }
+    
+    .tab-btn {
+        padding: 8px;
+        font-size: 10px;
+    }
+    
+    .ranking-list {
+        min-height: 300px;
+    }
+    
+    .ranking-item {
+        padding: 10px;
+        gap: 8px;
+    }
+    
+    .ranking-position {
+        font-size: 16px;
+        min-width: 28px;
+    }
+    
+    .ranking-name {
+        font-size: 12px;
+    }
+    
+    .ranking-details {
+        font-size: 9px;
+    }
+    
+    .ranking-score {
+        font-size: 16px;
+    }
+    
+    /* 結果画面 */
+    .rank-badge {
+        padding: 10px 20px;
+        gap: 8px;
+    }
+    
+    .rank-icon {
+        font-size: 28px;
+    }
+    
+    .rank-text {
+        font-size: 20px;
+    }
+    
+    .result-stat-item {
+        padding: 12px;
+    }
+    
+    .result-stat-label {
+        font-size: 9px;
+    }
+    
+    .result-stat-value {
+        font-size: 20px;
+    }
+    
+    .words-created-section {
+        padding: 10px;
+        max-height: 160px;
+    }
+    
+    .words-created-section h3 {
+        font-size: 12px;
+        margin-bottom: 10px;
+    }
+    
+    .word-item {
+        padding: 8px;
+        margin-bottom: 6px;
+    }
+    
+    .word-text {
+        font-size: 12px;
+    }
+    
+    .word-score {
+        font-size: 12px;
+    }
+    
+    /* カウントダウン */
+    .countdown-circle {
+        width: 120px;
+        height: 120px;
+    }
+    
+    .countdown-text {
+        font-size: 50px;
+    }
+    
+    /* アニメーション */
+    .word-complete-animation {
+        font-size: 20px;
+        padding: 15px 30px;
+    }
+    
+    .reset-warning {
+        font-size: 18px;
+        padding: 15px 30px;
+    }
+    
+    .combo-effect {
+        font-size: 28px;
+    }
+    
+    .points-popup {
+        font-size: 20px;
+    }
+}
+
+/* 横画面・低い画面（500px以下） */
+@media (orientation: landscape) and (max-height: 500px) {
+    .game-header {
+        padding: 6px 10px;
+    }
+    
+    .header-center {
+        width: auto;
+        order: 0;
+        margin-bottom: 0;
+    }
+    
+    .stat-box {
+        padding: 5px 8px;
+    }
+    
+    .stat-icon {
+        font-size: 14px;
+    }
+    
+    .stat-label {
+        font-size: 8px;
+    }
+    
+    .stat-value {
+        font-size: 13px;
+    }
+    
+    .score-label {
+        font-size: 9px;
+    }
+    
+    .score-value {
+        font-size: 20px;
+    }
+    
+    #gameCanvas {
+        height: calc(100vh - 180px);
+        min-height: 200px;
+    }
+    
+    .word-panel {
+        padding: 8px 12px;
+    }
+    
+    .letters-grid {
+        min-height: 30px;
+        padding: 6px;
+        gap: 4px;
+    }
+    
+    .letter-badge {
+        padding: 5px 8px;
+        font-size: 13px;
+    }
+    
+    .hint-section {
+        margin-top: 6px;
+        min-height: 20px;
+    }
+    
+    .hint-text {
+        font-size: 10px;
+        padding: 4px 8px;
+    }
+}
+
+/* 横画面・非常に低い画面（400px以下） */
+@media (orientation: landscape) and (max-height: 400px) {
+    .game-header {
+        padding: 5px 8px;
+    }
+    
+    .stat-box {
+        padding: 4px 6px;
+        gap: 4px;
+    }
+    
+    .stat-icon {
+        font-size: 12px;
+    }
+    
+    .stat-value {
+        font-size: 11px;
+    }
+    
+    .score-value {
+        font-size: 18px;
+    }
+    
+    #gameCanvas {
+        height: calc(100vh - 150px);
+        min-height: 180px;
+    }
+    
+    .word-panel {
+        padding: 6px 10px;
+    }
+    
+    .panel-header {
+        margin-bottom: 6px;
+    }
+    
+    .panel-title {
+        font-size: 9px;
+    }
+    
+    .block-counter {
+        font-size: 10px;
+        padding: 2px 6px;
+    }
+    
+    .letters-grid {
+        min-height: 28px;
+        padding: 5px;
+        gap: 3px;
+    }
+    
+    .letter-badge {
+        padding: 4px 6px;
+        font-size: 12px;
+    }
+    
+    .hint-section {
+        display: none;
+    }
+}
+
+/* iPhone SE（375x667）対応 */
+@media (max-width: 375px) and (max-height: 667px) {
+    #gameCanvas {
+        height: calc(100vh - 240px);
+        min-height: 300px;
+    }
+}
+
+/* iPhone 12/13 mini（375x812）対応 */
+@media (max-width: 375px) and (min-height: 800px) {
+    #gameCanvas {
+        height: calc(100vh - 260px);
+        min-height: 400px;
+        max-height: 500px;
+    }
+}
+
+/* iPhone 12/13 Pro Max（428x926）対応 */
+@media (min-width: 400px) and (max-width: 430px) and (min-height: 900px) {
+    #gameCanvas {
+        height: calc(100vh - 270px);
+        min-height: 450px;
+        max-height: 550px;
+    }
+}
+
+/* Galaxy Fold（280x653）対応 */
+@media (max-width: 280px) {
+    .container {
+        padding: 20px 10px;
+    }
+    
+    .logo-title {
+        font-size: 22px;
+    }
+    
+    .section-title {
+        font-size: 18px;
+    }
+    
+    .game-header {
+        padding: 5px 6px;
+    }
+    
+    .stat-box {
+        padding: 3px 5px;
+    }
+    
+    .stat-icon {
+        font-size: 11px;
+    }
+    
+    .stat-value {
+        font-size: 11px;
+    }
+    
+    .score-value {
+        font-size: 20px;
+    }
+    
+    #gameCanvas {
+        height: calc(100vh - 200px);
+        min-height: 250px;
+    }
+    
+    .letter-badge {
+        padding: 4px 6px;
+        font-size: 11px;
+    }
+}
