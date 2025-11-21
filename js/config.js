@@ -9,28 +9,37 @@ const CONFIG = {
     STAGE_CLEAR_BONUS: 3000,
     STAGE_CLEAR_TIME_BONUS: 100,
     
+    // 特別ステージ設定（新規追加）
+    SPECIAL_STAGE: {
+        ROWS: 9,           // 通常3行 → 9行
+        COLS: 9,           // 通常9列 → そのまま
+        PENETRATION: true, // 貫通モード
+        BACKGROUND: '#f0f8ff', // 雪をイメージした白背景
+        BLOCK_COLOR: '#ffffff', // 白いブロック
+    },
+    
     // ゲームエリア設定
     GAME_AREA: {
         MAX_WIDTH: 600,
         SIDE_WALL_WIDTH: 20
     },
     
-    // 難易度設定（ボールスピードを大幅に調整）
+    // 難易度設定
     DIFFICULTY: {
         easy: {
-            ballSpeed: 3.5,        // 2 → 3.5に増加
+            ballSpeed: 3.5,
             paddleWidth: 140,
-            ballMaxSpeed: 5.5      // 3.5 → 5.5に増加
+            ballMaxSpeed: 5.5
         },
         normal: {
-            ballSpeed: 4.5,        // 2.5 → 4.5に増加
+            ballSpeed: 4.5,
             paddleWidth: 120,
-            ballMaxSpeed: 7.0      // 4.5 → 7.0に増加
+            ballMaxSpeed: 7.0
         },
         hard: {
-            ballSpeed: 6.0,        // 3 → 6.0に増加
+            ballSpeed: 6.0,
             paddleWidth: 100,
-            ballMaxSpeed: 9.0      // 5.5 → 9.0に増加
+            ballMaxSpeed: 9.0
         }
     },
     
@@ -40,7 +49,7 @@ const CONFIG = {
         COMBO_MULTIPLIER: 50,
         SANTA_BLOCK_BONUS: 5000,
         
-        // 英単語作成のスコア（8文字まで対応）
+        // 英単語作成のスコア
         WORD_SCORE: {
             3: 100,
             4: 200,
@@ -2711,9 +2720,9 @@ const WORD_LIST = [
 
 // ランク判定
 const RANK_THRESHOLDS = {
-    S: 8000,
-    A: 6000,
-    B: 4000,
+    S: 15000,
+    A: 10000,
+    B: 6000,
     C: 2000,
     D: 0
 };

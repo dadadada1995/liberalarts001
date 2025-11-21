@@ -1,14 +1,15 @@
-// ゲームメインクラス（最適化版）
+// ゲームメインクラス（修正版）
 class Game {
     constructor() {
         console.log('🎮 Game initializing...');
         
         this.ui = new UIManager();
         this.physics = null;
-        this.playerName = '';
         this.difficulty = 'easy';
         
         this.currentPhase = 'setup';
+        this.isPaused = false; // 一時停止フラグ追加
+        this.isSpecialStage = false; // 特別ステージフラグ追加
         
         this.blockBreakScore = 0;
         this.blockBreakTime = CONFIG.BLOCK_BREAK_TIME;
@@ -31,7 +32,6 @@ class Game {
         this.isPlaying = false;
         this.ballLostRecently = false;
         
-        // パフォーマンス最適化: requestAnimationFrameのIDを保持
         this.gameLoopId = null;
         
         this.init();
@@ -120,24 +120,8 @@ class Game {
     startGame() {
         console.log('🎯 startGame() called');
         
-        const nicknameInput = this.ui.elements.nicknameInput;
-        if (!nicknameInput) {
-            console.error('❌ Nickname input not found!');
-            return;
-        }
-        
-        const nickname = nicknameInput.value.trim();
-        console.log('📝 Nickname entered:', nickname);
-        
-        if (!nickname) {
-            alert('名前を入力してください');
-            return;
-        }
-        
-        this.playerName = nickname;
         this.difficulty = this.ui.getSelectedDifficulty();
-        
-        console.log('Player: ' + this.playerName + ', Difficulty: ' + this.difficulty);
+        console.log('Difficulty: ' + this.difficulty);
         
         this.applyDifficulty();
         
@@ -156,7 +140,7 @@ class Game {
         console.log('⚙️ Difficulty applied:', diffSettings);
     }
     
-    countdown() {
+    countdown(resumeAfterSanta = false) {
         console.log('⏱️ Starting countdown...');
         
         let count = CONFIG.COUNTDOWN_TIME;
@@ -172,11 +156,57 @@ class Game {
                 this.ui.elements.countdownNumber.textContent = 'GO!';
                 clearInterval(countInterval);
                 setTimeout(() => {
-                    console.log('🎮 Countdown finished, starting block break phase');
-                    this.startBlockBreakPhase();
+                    if (resumeAfterSanta) {
+                        console.log('▶️ Resuming game after santa defeat');
+                        this.resumeGame();
+                    } else {
+                        console.log('🎮 Countdown finished, starting block break phase');
+                        this.startBlockBreakPhase();
+                    }
                 }, 500);
             }
         }, 1000);
+    }
+    
+    pauseGame() {
+        console.log('⏸️ Game paused');
+        this.isPaused = true;
+        
+        // タイマーを停止
+        if (this.timerInterval) {
+            clearInterval(this.timerInterval);
+            this.timerInterval = null;
+        }
+        
+        // ゲームループを停止
+        if (this.gameLoopId) {
+            cancelAnimationFrame(this.gameLoopId);
+            this.gameLoopId = null;
+        }
+        
+        // ボールを停止
+        if (this.physics && this.physics.ball) {
+            Matter.Body.setVelocity(this.physics.ball, { x: 0, y: 0 });
+        }
+    }
+    
+    resumeGame() {
+        console.log('▶️ Game resumed');
+        this.isPaused = false;
+        
+        // ゲーム画面に戻る
+        this.ui.showScreen('game');
+        
+        // ボールをリセット
+        if (this.physics) {
+            this.physics.resetBall();
+        }
+        
+        // ゲームループを再開
+        this.startGameLoop();
+        
+        // タイマーを再開
+        this.startTimer();
     }
     
     startBlockBreakPhase() {
@@ -187,6 +217,7 @@ class Game {
         this.ballsLeft = CONFIG.INITIAL_BALLS;
         this.collectedLetters = [];
         this.combo = 0;
+        this.isSpecialStage = false; // 通常ステージから開始
         
         this.ui.showScreen('game');
         
@@ -211,22 +242,21 @@ class Game {
         this.startGameLoop();
         this.startTimer();
         
-        console.log('✅ Block break phase started (Ultra-Light Mode)');
+        console.log('✅ Block break phase started');
     }
     
     setupGameControls() {
         const canvas = document.getElementById('gameCanvas');
         
-        // パッシブリスナーでパフォーマンス向上
         this.mouseMoveHandler = (e) => {
-            if (!this.physics) return;
+            if (!this.physics || this.isPaused) return;
             const rect = canvas.getBoundingClientRect();
             const mouseX = e.clientX - rect.left;
             this.physics.movePaddle(mouseX);
         };
         
         this.touchMoveHandler = (e) => {
-            if (!this.physics) return;
+            if (!this.physics || this.isPaused) return;
             e.preventDefault();
             const rect = canvas.getBoundingClientRect();
             const touch = e.touches[0];
@@ -236,7 +266,7 @@ class Game {
         
         this.keyHandler = (e) => {
             if (e.key === 'r' || e.key === 'R') {
-                if (this.physics && this.ballsLeft > 0) {
+                if (this.physics && this.ballsLeft > 0 && !this.isPaused) {
                     this.physics.resetBall();
                     this.showManualResetFeedback();
                 }
@@ -251,19 +281,23 @@ class Game {
     startGameLoop() {
         this.isPlaying = true;
         
-        // 最適化されたゲームループ
         let lastTime = performance.now();
-        const targetDelta = 1000 / 60; // 60FPS目標
+        const targetDelta = 1000 / 60;
         
         const gameLoop = (currentTime) => {
-            if (!this.isPlaying || this.currentPhase !== 'blockBreak') {
-                this.gameLoopId = null;
+            if (!this.isPlaying || this.currentPhase !== 'blockBreak' || this.isPaused) {
+                if (!this.isPaused) {
+                    this.gameLoopId = null;
+                }
+                if (this.isPaused) {
+                    // 一時停止中は次のフレームを待つ
+                    this.gameLoopId = requestAnimationFrame(gameLoop);
+                }
                 return;
             }
             
             const deltaTime = currentTime - lastTime;
             
-            // フレームスキップで負荷軽減
             if (deltaTime >= targetDelta) {
                 lastTime = currentTime - (deltaTime % targetDelta);
                 
@@ -284,6 +318,8 @@ class Game {
     
     startTimer() {
         this.timerInterval = setInterval(() => {
+            if (this.isPaused) return; // 一時停止中はタイマーを進めない
+            
             this.blockBreakTime--;
             this.ui.updateTimer(this.blockBreakTime);
             
@@ -305,7 +341,7 @@ class Game {
     }
     
     checkSantaSpawn() {
-        if (this.santaSpawned) return;
+        if (this.santaSpawned || this.isSpecialStage) return;
         
         const spawnTime = CONFIG.SANTA['SPAWN_TIME_' + this.difficulty.toUpperCase()];
         const elapsed = CONFIG.BLOCK_BREAK_TIME - this.blockBreakTime;
@@ -317,50 +353,49 @@ class Game {
         }
     }
     
-onBlockDestroyed(block) {
-    console.log('💥 Block destroyed: ' + block.letter);
-    
-    this.collectedLetters.push(block.letter);
-    this.ui.displayCollectedLetters(this.collectedLetters);
-    
-    this.combo++;
-    if (this.combo > this.maxCombo) {
-        this.maxCombo = this.combo;
-    }
-    this.ui.updateCombo(this.combo);
-    
-    const baseScore = CONFIG.SCORE.BLOCK_DESTROY;
-    const comboBonus = this.combo > 1 ? (this.combo - 1) * CONFIG.SCORE.COMBO_MULTIPLIER : 0;
-    const totalScore = baseScore + comboBonus;
-    
-    this.blockBreakScore += totalScore;
-    this.totalBlocksDestroyed++;
-    this.ui.updateScore(this.blockBreakScore);
-    
-    // パーティクルエフェクトを最小限に
-    if (window.particleSystem && this.combo % 3 === 0) {
-        window.particleSystem.createExplosion(
-            block.position.x,
-            block.position.y,
-            block.render.fillStyle
-        );
-    }
-    
-    if (this.combo >= 3) {
-        this.ui.showComboEffect(this.combo);
-        if (window.soundManager && this.combo % 5 === 0) {
-            window.soundManager.playWordComplete();
+    onBlockDestroyed(block) {
+        console.log('💥 Block destroyed: ' + block.letter);
+        
+        this.collectedLetters.push(block.letter);
+        this.ui.displayCollectedLetters(this.collectedLetters);
+        
+        this.combo++;
+        if (this.combo > this.maxCombo) {
+            this.maxCombo = this.combo;
+        }
+        this.ui.updateCombo(this.combo);
+        
+        const baseScore = CONFIG.SCORE.BLOCK_DESTROY;
+        const comboBonus = this.combo > 1 ? (this.combo - 1) * CONFIG.SCORE.COMBO_MULTIPLIER : 0;
+        const totalScore = baseScore + comboBonus;
+        
+        this.blockBreakScore += totalScore;
+        this.totalBlocksDestroyed++;
+        this.ui.updateScore(this.blockBreakScore);
+        
+        // パーティクルエフェクトを最小限に
+        if (window.particleSystem && this.combo % 3 === 0) {
+            window.particleSystem.createExplosion(
+                block.position.x,
+                block.position.y,
+                block.isSpecialStage ? '#ffffff' : block.render.fillStyle
+            );
+        }
+        
+        if (this.combo >= 3) {
+            this.ui.showComboEffect(this.combo);
+            if (window.soundManager && this.combo % 5 === 0) {
+                window.soundManager.playWordComplete();
+            }
+        }
+        
+        this.physics.removeBlock(block);
+        
+        // ステージクリア処理
+        if (this.physics.blocks.length === 0) {
+            this.onStageComplete();
         }
     }
-    
-    this.physics.removeBlock(block);
-    
-    // ステージクリア処理を有効化（コメントアウトを解除）
-    if (this.physics.blocks.length === 0) {
-        this.onStageComplete();
-    }
-}
-
     
     onSantaHit() {
         console.log('🎅 Santa block hit!');
@@ -375,12 +410,24 @@ onBlockDestroyed(block) {
         this.blockBreakScore += CONFIG.SCORE.SANTA_BLOCK_BONUS;
         this.ui.updateScore(this.blockBreakScore);
         
+        // ゲームを一時停止
+        this.pauseGame();
+        
+        // メリークリスマスポップアップを表示
         this.showMerryChristmasPopup();
+        
         this.physics.removeSantaBlock();
         
         if (window.soundManager) {
             window.soundManager.playStageComplete();
         }
+        
+        // 3秒後にカウントダウン画面に移行して特別ステージ開始
+        setTimeout(() => {
+            this.isSpecialStage = true; // 特別ステージフラグを立てる
+            this.ui.showScreen('countdown');
+            this.countdown(true); // 再開用のカウントダウン
+        }, 3000);
     }
     
     showMerryChristmasPopup() {
@@ -393,76 +440,75 @@ onBlockDestroyed(block) {
         }
     }
     
-   onStageComplete() {
-    console.log('🎉 Stage complete!');
-    
-    // ステージクリアボーナスを加算
-    const timeBonus = this.blockBreakTime * CONFIG.STAGE_CLEAR_TIME_BONUS;
-    this.blockBreakScore += CONFIG.STAGE_CLEAR_BONUS + timeBonus;
-    this.ui.updateScore(this.blockBreakScore);
-    
-    // ステージクリアアニメーションを表示
-    this.showStageCompleteAnimation();
-    
-    // ステージカウントを増加
-    this.stageCount++;
-    
-    // サウンドを再生
-    if (window.soundManager) {
-        window.soundManager.playStageComplete();
-    }
-    
-    // 2秒後に新しいステージを開始
-    setTimeout(() => {
-        console.log(`🎮 Starting Stage ${this.stageCount}`);
+    onStageComplete() {
+        console.log('🎉 Stage complete!');
         
-        // 新しいブロックを作成
-        if (this.physics) {
-            this.physics.createBlocks();
-            console.log(`✅ Stage ${this.stageCount}: ${this.physics.blocks.length} blocks created`);
+        const timeBonus = this.blockBreakTime * CONFIG.STAGE_CLEAR_TIME_BONUS;
+        this.blockBreakScore += CONFIG.STAGE_CLEAR_BONUS + timeBonus;
+        this.ui.updateScore(this.blockBreakScore);
+        
+        this.showStageCompleteAnimation();
+        
+        this.stageCount++;
+        
+        if (window.soundManager) {
+            window.soundManager.playStageComplete();
         }
         
-        // サンタブロックのフラグをリセット
-        this.santaSpawned = false;
-        
-        // コンボをリセット
-        this.combo = 0;
-        this.ui.updateCombo(0);
-        
-        // ステージ開始アニメーションを表示
-        this.showStageStartAnimation();
-    }, 2000);
-}
-
-showStageCompleteAnimation() {
-    const animation = document.createElement('div');
-    animation.className = 'stage-clear-animation';
-    animation.innerHTML = `
-        <div class="stage-clear-title">STAGE ${this.stageCount} CLEAR!</div>
-        <div class="stage-clear-bonus">+${CONFIG.STAGE_CLEAR_BONUS}</div>
-        <div class="stage-clear-info">Time Bonus: +${this.blockBreakTime * CONFIG.STAGE_CLEAR_TIME_BONUS}</div>
-    `;
-    document.body.appendChild(animation);
+        setTimeout(() => {
+            console.log(`🎮 Starting Stage ${this.stageCount}`);
+            
+            if (this.physics) {
+                // 特別ステージかどうかで分岐
+                this.physics.createBlocks(this.isSpecialStage);
+                console.log(`✅ Stage ${this.stageCount}: ${this.physics.blocks.length} blocks created`);
+            }
+            
+            this.santaSpawned = false;
+            this.combo = 0;
+            this.ui.updateCombo(0);
+            
+            this.showStageStartAnimation();
+        }, 2000);
+    }
     
-    setTimeout(() => {
-        animation.remove();
-    }, 2000);
-}
-
-showStageStartAnimation() {
-    const animation = document.createElement('div');
-    animation.className = 'stage-start-animation';
-    animation.innerHTML = `
-        <div class="stage-number">STAGE ${this.stageCount}</div>
-        <div class="stage-message">START!</div>
-    `;
-    document.body.appendChild(animation);
+    showStageCompleteAnimation() {
+        const animation = document.createElement('div');
+        animation.className = 'stage-clear-animation';
+        animation.innerHTML = `
+            <div class="stage-clear-title">STAGE ${this.stageCount} CLEAR!</div>
+            <div class="stage-clear-bonus">+${CONFIG.STAGE_CLEAR_BONUS}</div>
+            <div class="stage-clear-info">Time Bonus: +${this.blockBreakTime * CONFIG.STAGE_CLEAR_TIME_BONUS}</div>
+        `;
+        document.body.appendChild(animation);
+        
+        setTimeout(() => {
+            animation.remove();
+        }, 2000);
+    }
     
-    setTimeout(() => {
-        animation.remove();
-    }, 1500);
-}
-
+    showStageStartAnimation() {
+        const animation = document.createElement('div');
+        animation.className = 'stage-start-animation';
+        
+        if (this.isSpecialStage) {
+            animation.innerHTML = `
+                <div class="stage-number">❄️ SPECIAL STAGE ❄️</div>
+                <div class="stage-message">PENETRATION MODE!</div>
+            `;
+        } else {
+            animation.innerHTML = `
+                <div class="stage-number">STAGE ${this.stageCount}</div>
+                <div class="stage-message">START!</div>
+            `;
+        }
+        
+        document.body.appendChild(animation);
+        
+        setTimeout(() => {
+            animation.remove();
+        }, 1500);
+    }
     
     showManualResetFeedback() {
         const feedback = document.createElement('div');
@@ -634,7 +680,6 @@ showStageStartAnimation() {
         this.currentWordInput = '';
         this.ui.updateWordMakeDisplay(this.currentWordInput, this.availableLetters);
         
-        // エフェクトを最小限に
         if (window.soundManager) {
             window.soundManager.playWordComplete();
         }
@@ -668,7 +713,6 @@ showStageStartAnimation() {
         const totalScore = this.blockBreakScore + this.wordMakeScore;
         
         await this.ui.showResult(
-            this.playerName,
             totalScore,
             this.blockBreakScore,
             this.wordMakeScore,
@@ -708,7 +752,6 @@ showStageStartAnimation() {
             window.particleSystem.setGamePlaying(false);
         }
         
-        // キャッシュをクリア
         if (this.physics && this.physics.cachedGradients) {
             this.physics.cachedGradients.clear();
         }
@@ -716,6 +759,8 @@ showStageStartAnimation() {
         this.removeGameControls();
         
         this.currentPhase = 'setup';
+        this.isPaused = false;
+        this.isSpecialStage = false;
         this.blockBreakScore = 0;
         this.wordMakeScore = 0;
         this.collectedLetters = [];
@@ -730,8 +775,7 @@ showStageStartAnimation() {
         this.santaSpawned = false;
         this.isPlaying = false;
         
-        this.ui.elements.nicknameInput.value = '';
-        this.ui.showScreen('login');
+        this.ui.showScreen('setup'); // loginからsetupに変更
         
         console.log('✅ Game reset complete');
     }

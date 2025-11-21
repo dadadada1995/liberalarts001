@@ -88,9 +88,15 @@
                 </div>
                 
                 <div class="how-to-item">
+                    <div class="how-to-icon">🎅</div>
+                    <h3>サンタブロック</h3>
+                    <p>サンタを倒すと+5000点！<br>倒した後は特別ステージに突入！<br>白い貫通ブロックで大量得点のチャンス！</p>
+                </div>
+                
+                <div class="how-to-item">
                     <div class="how-to-icon">⚠️</div>
                     <h3>注意事項</h3>
-                    <p>制限時間は60秒<br>ボールは3個まで<br>サンタブロックを壊すと+5000点！</p>
+                    <p>制限時間は60秒<br>ボールは3個まで<br>Rキーでボールリセット可能</p>
                 </div>
             </div>
             
@@ -100,7 +106,7 @@
         </div>
     </div>
 
-    <!-- スコア履歴画面 -->
+    <!-- スコア履歴画面（ニックネーム列削除） -->
     <div id="historyScreen" class="screen">
         <div class="container history-container">
             <h2 class="section-title">📊 SCORE HISTORY 📊</h2>
@@ -128,8 +134,7 @@
                     <thead>
                         <tr>
                             <th style="width: 60px;">順位</th>
-                            <th>プレイヤー</th>
-                            <th style="width: 120px;">スコア</th>
+                            <th style="width: 140px;">スコア</th>
                             <th style="width: 100px;">難易度</th>
                             <th style="width: 140px;">日時</th>
                             <th style="width: 80px;">操作</th>
@@ -137,7 +142,7 @@
                     </thead>
                     <tbody id="historyTableBody">
                         <tr>
-                            <td colspan="6" style="text-align: center; padding: 40px;">
+                            <td colspan="5" style="text-align: center; padding: 40px;">
                                 Loading...
                             </td>
                         </tr>
@@ -162,15 +167,10 @@
         </div>
     </div>
 
-    <!-- ログイン画面 -->
-    <div id="loginScreen" class="screen">
+    <!-- セットアップ画面（ニックネーム入力削除） -->
+    <div id="setupScreen" class="screen">
         <div class="container game-setup-container">
             <h2 class="section-title">GAME SETUP</h2>
-            
-            <div class="setup-section">
-                <label class="setup-label">PLAYER NAME</label>
-                <input type="text" id="nicknameInput" class="game-input" placeholder="Enter your name" maxlength="15">
-            </div>
             
             <div class="setup-section">
                 <label class="setup-label">DIFFICULTY</label>
@@ -327,7 +327,7 @@
         </div>
     </div>
 
-    <!-- 結果画面 -->
+    <!-- 結果画面（ニックネーム表示削除） -->
     <div id="resultScreen" class="screen">
         <div class="container result-container">
             <div class="result-rank" id="rankDisplay">
@@ -340,10 +340,6 @@
             <h2 class="section-title">GAME OVER</h2>
             
             <div class="result-stats">
-                <div class="result-stat-item">
-                    <div class="result-stat-label">PLAYER</div>
-                    <div id="resultName" class="result-stat-value">---</div>
-                </div>
                 <div class="result-stat-item highlight">
                     <div class="result-stat-label">FINAL SCORE</div>
                     <div id="finalScore" class="result-stat-value score-highlight">0</div>
@@ -396,26 +392,17 @@
         </div>
     </div>
 
-    <!-- スクリプト読み込み（順序が重要！） -->
+    <!-- スクリプト読み込み（順序維持） -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.19.0/matter.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     
-    <!-- 1. 最初に設定ファイル -->
     <script src="js/config.js"></script>
-    
-    <!-- 2. ユーティリティクラス -->
     <script src="js/sound.js"></script>
     <script src="js/particles.js"></script>
     <script src="js/renderer3d.js"></script>
-    
-    <!-- 3. ランキングとUI -->
     <script src="js/ranking.js"></script>
     <script src="js/ui.js"></script>
-    
-    <!-- 4. 物理エンジン -->
     <script src="js/physics.js"></script>
-    
-    <!-- 5. 最後にメインゲームクラス -->
     <script src="js/game.js"></script>
 
     <!-- 初期化スクリプト -->
@@ -441,7 +428,6 @@
                     
                     console.log('✅ CONFIG loaded successfully');
                     
-                    // 3Dレンダラーの初期化
                     if (typeof THREE !== 'undefined') {
                         window.renderer3d = new Renderer3D();
                         console.log('✅ 3D Renderer initialized');
@@ -456,15 +442,6 @@
                     
                     window.game = new Game();
                     console.log('✅ Game initialized successfully');
-                    
-                    console.log('📊 Initialization complete:', {
-                        hasGame: !!window.game,
-                        hasUI: !!window.game?.ui,
-                        has3DRenderer: !!window.renderer3d,
-                        hasStartButton: !!document.getElementById('startButton'),
-                        hasNicknameInput: !!document.getElementById('nicknameInput'),
-                        hasCONFIG: typeof CONFIG !== 'undefined'
-                    });
                     
                 } catch (error) {
                     console.error('❌ Initialization error:', error);

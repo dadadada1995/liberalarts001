@@ -8,9 +8,9 @@ class PhysicsEngine {
         // エンジンの最適化設定
         this.engine.world.gravity.y = 0;
         this.engine.world.gravity.x = 0;
-        this.engine.enableSleeping = false; // スリープ機能を無効化
-        this.engine.positionIterations = 4; // デフォルト6から4に削減
-        this.engine.velocityIterations = 3; // デフォルト4から3に削減
+        this.engine.enableSleeping = false;
+        this.engine.positionIterations = 4;
+        this.engine.velocityIterations = 3;
         
         const rect = canvas.getBoundingClientRect();
         canvas.width = rect.width;
@@ -43,7 +43,7 @@ class PhysicsEngine {
         
         // 描画の最適化
         this.lastDrawTime = 0;
-        this.drawInterval = 16; // 約60FPS
+        this.drawInterval = 16;
         
         // キャッシュ用
         this.cachedGradients = new Map();
@@ -236,7 +236,10 @@ class PhysicsEngine {
             window.soundManager.playBlockHit();
         }
         
-        this.maintainBallSpeed();
+        // 貫通モードでない場合のみ速度を維持
+        if (!block.penetration) {
+            this.maintainBallSpeed();
+        }
     }
     
     maintainBallSpeed() {
@@ -286,52 +289,61 @@ class PhysicsEngine {
         console.log('✅ Paddle created');
     }
     
-    createBlocks() {
-    // 既存のブロックを全てクリア
-    this.blocks.forEach(block => {
-        Matter.World.remove(this.world, block);
-    });
-    this.blocks = [];
-    
-    console.log('🧱 Creating new blocks...');
-    
-    const config = CONFIG.BLOCKS;
-    const totalWidth = config.COLS * (config.WIDTH + config.PADDING) - config.PADDING;
-    const startX = (this.canvas.width - totalWidth) / 2 + config.WIDTH / 2;
-    
-    for (let row = 0; row < config.ROWS; row++) {
-        for (let col = 0; col < config.COLS; col++) {
-            const x = startX + col * (config.WIDTH + config.PADDING);
-            const y = config.START_Y + row * (config.HEIGHT + config.PADDING);
-            
-            const letter = CONFIG.LETTERS[Math.floor(Math.random() * CONFIG.LETTERS.length)];
-            const hue = (col * 30 + row * 60) % 360;
-            
-            const block = Matter.Bodies.rectangle(x, y, config.WIDTH, config.HEIGHT, {
-                isStatic: true,
-                label: `block_${row}_${col}`,
-                render: {
-                    fillStyle: 'transparent'
-                },
-                friction: 0,
-                restitution: 1.0,
-                frictionAir: 0,
-                collisionFilter: {
-                    category: 0x0001,
-                    mask: 0x0002
-                }
-            });
-            
-            block.letter = letter;
-            block.hue = hue;
-            block.animationOffset = Math.random() * Math.PI * 2;
-            this.blocks.push(block);
-            Matter.World.add(this.world, block);
+    createBlocks(isSpecialStage = false) {
+        // 既存のブロックを全てクリア
+        this.blocks.forEach(block => {
+            Matter.World.remove(this.world, block);
+        });
+        this.blocks = [];
+        
+        console.log(isSpecialStage ? '❄️ Creating special stage blocks...' : '🧱 Creating new blocks...');
+        
+        const config = isSpecialStage ? CONFIG.SPECIAL_STAGE : CONFIG.BLOCKS;
+        const rows = isSpecialStage ? config.ROWS : CONFIG.BLOCKS.ROWS;
+        const cols = isSpecialStage ? config.COLS : CONFIG.BLOCKS.COLS;
+        const width = CONFIG.BLOCKS.WIDTH;
+        const height = CONFIG.BLOCKS.HEIGHT;
+        const padding = CONFIG.BLOCKS.PADDING;
+        const startY = CONFIG.BLOCKS.START_Y;
+        
+        const totalWidth = cols * (width + padding) - padding;
+        const startX = (this.canvas.width - totalWidth) / 2 + width / 2;
+        
+        for (let row = 0; row < rows; row++) {
+            for (let col = 0; col < cols; col++) {
+                const x = startX + col * (width + padding);
+                const y = startY + row * (height + padding);
+                
+                const letter = CONFIG.LETTERS[Math.floor(Math.random() * CONFIG.LETTERS.length)];
+                const hue = isSpecialStage ? 0 : (col * 30 + row * 60) % 360;
+                
+                const block = Matter.Bodies.rectangle(x, y, width, height, {
+                    isStatic: true,
+                    label: `block_${row}_${col}`,
+                    render: {
+                        fillStyle: 'transparent'
+                    },
+                    friction: 0,
+                    restitution: 1.0,
+                    frictionAir: 0,
+                    collisionFilter: {
+                        category: 0x0001,
+                        mask: 0x0002
+                    }
+                });
+                
+                block.letter = letter;
+                block.hue = hue;
+                block.animationOffset = Math.random() * Math.PI * 2;
+                block.isSpecialStage = isSpecialStage;
+                block.penetration = isSpecialStage;
+                this.blocks.push(block);
+                Matter.World.add(this.world, block);
+            }
         }
+        
+        console.log(`✅ ${this.blocks.length}個のブロックを作成${isSpecialStage ? '（特別ステージ）' : ''}`);
     }
-    
-    console.log(`✅ ${this.blocks.length}個のブロックを作成`);
-}
     
     createBall() {
         const radius = CONFIG.PHYSICS.BALL_RADIUS;
@@ -538,28 +550,29 @@ class PhysicsEngine {
     drawOptimizedElements() {
         if (!this.ctx) return;
         
-        // 背景をクリア
-        this.ctx.fillStyle = '#0a0e27';
+        // 特別ステージかどうかで背景色を変更
+        const isSpecialStage = this.blocks.length > 0 && this.blocks[0].isSpecialStage;
+        this.ctx.fillStyle = isSpecialStage ? '#f0f8ff' : '#0a0e27';
         this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
         
         const time = Date.now() * 0.001;
         
-        // ブロックの描画（簡略化された3D効果）
+        // ブロックの描画
         this.blocks.forEach(block => {
             this.drawLightBlock(block, time);
         });
         
-        // パドルの描画（簡略化された3D効果）
+        // パドルの描画
         if (this.paddle) {
             this.drawLightPaddle(this.paddle, time);
         }
         
-        // ボールの描画（簡略化された3D効果）
+        // ボールの描画
         if (this.ball) {
             this.drawLightBall(this.ball, time);
         }
         
-        // サンタの描画（簡略化された3D効果）
+        // サンタの描画
         if (this.santaBlock) {
             this.drawLightSanta(this.santaBlock, time);
         }
@@ -574,37 +587,72 @@ class PhysicsEngine {
         this.ctx.save();
         this.ctx.translate(pos.x, pos.y);
         
-        const hue = block.hue;
         const pulse = Math.sin(time * 2 + block.animationOffset) * 0.02 + 1;
         this.ctx.scale(pulse, pulse);
         
-        // 簡略化された影（3D効果）
-        this.ctx.fillStyle = `hsla(${hue}, 70%, 25%, 0.4)`;
-        this.ctx.fillRect(-w/2 + 2, -h/2 + 2, w, h);
-        
-        // メイン面（シンプルなグラデーション）
-        const cacheKey = `block_${hue}`;
-        let gradient = this.cachedGradients.get(cacheKey);
-        if (!gradient) {
-            gradient = this.ctx.createLinearGradient(-w/2, -h/2, w/2, h/2);
-            gradient.addColorStop(0, `hsl(${hue}, 70%, 60%)`);
-            gradient.addColorStop(1, `hsl(${hue}, 70%, 40%)`);
-            this.cachedGradients.set(cacheKey, gradient);
-        }
-        this.ctx.fillStyle = gradient;
-        this.ctx.fillRect(-w/2, -h/2, w, h);
-        
-        // ハイライト（簡略化）
-        this.ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
-        this.ctx.fillRect(-w/2, -h/2, w * 0.4, h * 0.3);
-        
-        // 文字
-        if (block.letter) {
-            this.ctx.fillStyle = '#ffffff';
-            this.ctx.font = 'bold 16px Arial';
-            this.ctx.textAlign = 'center';
-            this.ctx.textBaseline = 'middle';
-            this.ctx.fillText(block.letter, 0, 0);
+        if (block.isSpecialStage) {
+            // 特別ステージ用の白いブロック
+            // 影
+            this.ctx.fillStyle = 'rgba(200, 220, 255, 0.4)';
+            this.ctx.fillRect(-w/2 + 2, -h/2 + 2, w, h);
+            
+            // メイン面（白いグラデーション）
+            const gradient = this.ctx.createLinearGradient(-w/2, -h/2, w/2, h/2);
+            gradient.addColorStop(0, '#ffffff');
+            gradient.addColorStop(1, '#e0f0ff');
+            this.ctx.fillStyle = gradient;
+            this.ctx.fillRect(-w/2, -h/2, w, h);
+            
+            // 雪の結晶模様
+            this.ctx.strokeStyle = 'rgba(180, 210, 255, 0.6)';
+            this.ctx.lineWidth = 1;
+            this.ctx.beginPath();
+            this.ctx.moveTo(-w/4, 0);
+            this.ctx.lineTo(w/4, 0);
+            this.ctx.moveTo(0, -h/4);
+            this.ctx.lineTo(0, h/4);
+            this.ctx.stroke();
+            
+            // ハイライト
+            this.ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+            this.ctx.fillRect(-w/2, -h/2, w * 0.4, h * 0.3);
+            
+            // 文字（青色）
+            if (block.letter) {
+                this.ctx.fillStyle = '#4080ff';
+                this.ctx.font = 'bold 16px Arial';
+                this.ctx.textAlign = 'center';
+                this.ctx.textBaseline = 'middle';
+                this.ctx.fillText(block.letter, 0, 0);
+            }
+        } else {
+            // 通常ブロック
+            const hue = block.hue;
+            
+            this.ctx.fillStyle = `hsla(${hue}, 70%, 25%, 0.4)`;
+            this.ctx.fillRect(-w/2 + 2, -h/2 + 2, w, h);
+            
+            const cacheKey = `block_${hue}`;
+            let gradient = this.cachedGradients.get(cacheKey);
+            if (!gradient) {
+                gradient = this.ctx.createLinearGradient(-w/2, -h/2, w/2, h/2);
+                gradient.addColorStop(0, `hsl(${hue}, 70%, 60%)`);
+                gradient.addColorStop(1, `hsl(${hue}, 70%, 40%)`);
+                this.cachedGradients.set(cacheKey, gradient);
+            }
+            this.ctx.fillStyle = gradient;
+            this.ctx.fillRect(-w/2, -h/2, w, h);
+            
+            this.ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
+            this.ctx.fillRect(-w/2, -h/2, w * 0.4, h * 0.3);
+            
+            if (block.letter) {
+                this.ctx.fillStyle = '#ffffff';
+                this.ctx.font = 'bold 16px Arial';
+                this.ctx.textAlign = 'center';
+                this.ctx.textBaseline = 'middle';
+                this.ctx.fillText(block.letter, 0, 0);
+            }
         }
         
         this.ctx.restore();
@@ -619,11 +667,9 @@ class PhysicsEngine {
         this.ctx.save();
         this.ctx.translate(pos.x, pos.y);
         
-        // 簡略化された影（3D効果）
         this.ctx.fillStyle = 'rgba(0, 153, 204, 0.5)';
         this.ctx.fillRect(-w/2 + 2, -h/2 + 2, w, h);
         
-        // メインボディ（シンプルなグラデーション）
         let gradient = this.cachedGradients.get('paddle');
         if (!gradient) {
             gradient = this.ctx.createLinearGradient(-w/2, -h/2, w/2, h/2);
@@ -634,7 +680,6 @@ class PhysicsEngine {
         this.ctx.fillStyle = gradient;
         this.ctx.fillRect(-w/2, -h/2, w, h);
         
-        // トップハイライト（簡略化）
         this.ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
         this.ctx.fillRect(-w/2, -h/2, w, h * 0.3);
         
@@ -649,7 +694,6 @@ class PhysicsEngine {
         this.ctx.save();
         this.ctx.translate(pos.x, pos.y);
         
-        // 軌跡エフェクト（最小限）
         const velocity = ball.velocity;
         const speed = Math.sqrt(velocity.x * velocity.x + velocity.y * velocity.y);
         if (speed > 1) {
@@ -661,13 +705,11 @@ class PhysicsEngine {
             this.ctx.globalAlpha = 1;
         }
         
-        // 外側のグロー（簡略化）
         this.ctx.fillStyle = 'rgba(255, 0, 110, 0.2)';
         this.ctx.beginPath();
         this.ctx.arc(0, 0, r * 1.3, 0, Math.PI * 2);
         this.ctx.fill();
         
-        // メインボール（シンプルなグラデーション）
         let gradient = this.cachedGradients.get('ball');
         if (!gradient) {
             gradient = this.ctx.createRadialGradient(-r * 0.3, -r * 0.3, 0, 0, 0, r * 1.2);
@@ -682,7 +724,6 @@ class PhysicsEngine {
         this.ctx.arc(0, 0, r, 0, Math.PI * 2);
         this.ctx.fill();
         
-        // ハイライト（簡略化）
         this.ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
         this.ctx.beginPath();
         this.ctx.arc(-r * 0.3, -r * 0.3, r * 0.4, 0, Math.PI * 2);
@@ -701,13 +742,13 @@ class PhysicsEngine {
         const bounce = Math.sin(time * 3) * 3;
         this.ctx.translate(0, bounce);
         
-        // 影（簡略化）
+        // 影
         this.ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
         this.ctx.beginPath();
         this.ctx.ellipse(0, 45, 40, 8, 0, 0, Math.PI * 2);
         this.ctx.fill();
         
-        // 体（シンプルなグラデーション）
+        // 体
         let bodyGradient = this.cachedGradients.get('santa_body');
         if (!bodyGradient) {
             bodyGradient = this.ctx.createLinearGradient(-30, -10, 30, 40);
@@ -724,7 +765,7 @@ class PhysicsEngine {
         this.ctx.fillStyle = '#1a1a1a';
         this.ctx.fillRect(-34, 0, 68, 12);
         
-        // バックル（簡略化）
+        // バックル
         this.ctx.fillStyle = '#ffd700';
         this.ctx.fillRect(-12, -2, 24, 16);
         this.ctx.fillStyle = '#1a1a1a';
@@ -734,7 +775,7 @@ class PhysicsEngine {
         this.ctx.fillStyle = '#ffffff';
         this.ctx.fillRect(-34, 35, 68, 7);
         
-        // 腕（簡略化）
+        // 腕
         this.ctx.fillStyle = '#ee3333';
         this.ctx.beginPath();
         this.ctx.ellipse(-26, 10, 9, 22, -0.3, 0, Math.PI * 2);
@@ -752,7 +793,7 @@ class PhysicsEngine {
         this.ctx.arc(29, 26, 7, 0, Math.PI * 2);
         this.ctx.fill();
         
-        // 顔（シンプルなグラデーション）
+        // 顔
         let faceGradient = this.cachedGradients.get('santa_face');
         if (!faceGradient) {
             faceGradient = this.ctx.createRadialGradient(-5, -18, 0, 0, -15, 20);
@@ -801,7 +842,7 @@ class PhysicsEngine {
         this.ctx.ellipse(0, -2, 9, 11, 0, 0, Math.PI * 2);
         this.ctx.fill();
         
-        // 帽子（簡略化）
+        // 帽子
         this.ctx.fillStyle = '#ee3333';
         this.ctx.beginPath();
         this.ctx.moveTo(-20, -26);
@@ -821,19 +862,17 @@ class PhysicsEngine {
         this.ctx.arc(10, -44, 6, 0, Math.PI * 2);
         this.ctx.fill();
         
-        // 体力バー（簡略化された3D）
+        // 体力バー
         const barWidth = 90;
         const barHeight = 12;
         const barY = 48;
         
-        // バー背景
         this.ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
         this.ctx.fillRect(-barWidth/2 + 1, barY + 1, barWidth, barHeight);
         
         this.ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
         this.ctx.fillRect(-barWidth/2, barY, barWidth, barHeight);
         
-        // 体力バー
         const healthRatio = this.santaHealth / CONFIG.SANTA.MAX_HEALTH;
         if (healthRatio > 0.6) {
             this.ctx.fillStyle = '#00ff88';
@@ -844,16 +883,13 @@ class PhysicsEngine {
         }
         this.ctx.fillRect(-barWidth/2 + 2, barY + 2, (barWidth - 4) * healthRatio, barHeight - 4);
         
-        // ハイライト
         this.ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
         this.ctx.fillRect(-barWidth/2 + 2, barY + 2, (barWidth - 4) * healthRatio, 3);
         
-        // 枠
         this.ctx.strokeStyle = 'rgba(255, 255, 255, 0.8)';
         this.ctx.lineWidth = 2;
         this.ctx.strokeRect(-barWidth/2, barY, barWidth, barHeight);
         
-        // 体力数値
         this.ctx.fillStyle = '#ffffff';
         this.ctx.font = 'bold 11px Arial';
         this.ctx.textAlign = 'center';

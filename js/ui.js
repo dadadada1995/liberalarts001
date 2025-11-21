@@ -1,4 +1,4 @@
-// UI管理クラス
+// UI管理クラス（ニックネーム機能削除版）
 class UIManager {
     constructor() {
         console.log('🎨 UIManager initializing...');
@@ -7,7 +7,7 @@ class UIManager {
             menuScreen: document.getElementById('menuScreen'),
             howToPlayScreen: document.getElementById('howToPlayScreen'),
             historyScreen: document.getElementById('historyScreen'),
-            loginScreen: document.getElementById('loginScreen'),
+            setupScreen: document.getElementById('setupScreen'), // loginScreenから変更
             countdownScreen: document.getElementById('countdownScreen'),
             gameScreen: document.getElementById('gameScreen'),
             wordMakeScreen: document.getElementById('wordMakeScreen'),
@@ -24,7 +24,6 @@ class UIManager {
             clearHistoryButton: document.getElementById('clearHistoryButton'),
             backToMenuFromHistory: document.getElementById('backToMenuFromHistory'),
             
-            nicknameInput: document.getElementById('nicknameInput'),
             startButton: document.getElementById('startButton'),
             backToMenuFromSetup: document.getElementById('backToMenuFromSetup'),
             
@@ -46,7 +45,6 @@ class UIManager {
             wordMakeMessage: document.getElementById('wordMakeMessage'),
             
             rankDisplay: document.getElementById('rankDisplay'),
-            resultName: document.getElementById('resultName'),
             finalScore: document.getElementById('finalScore'),
             blockBreakScoreDisplay: document.getElementById('blockBreakScoreDisplay'),
             wordMakeScoreDisplay: document.getElementById('wordMakeScoreDisplay'),
@@ -71,15 +69,13 @@ class UIManager {
     setupEventListeners() {
         console.log('🔧 UIManager: Setting up event listeners...');
         
-        // プレイボタン
         if (this.elements.playButton) {
             this.elements.playButton.addEventListener('click', () => {
                 console.log('🎮 Play button clicked');
-                this.showScreen('login');
+                this.showScreen('setup'); // loginからsetupに変更
             });
         }
         
-        // スコア履歴ボタン
         if (this.elements.historyButton) {
             this.elements.historyButton.addEventListener('click', () => {
                 console.log('📊 History button clicked');
@@ -92,7 +88,6 @@ class UIManager {
             });
         }
         
-        // 遊び方ボタン
         if (this.elements.howToPlayButton) {
             this.elements.howToPlayButton.addEventListener('click', () => {
                 console.log('❓ How to play button clicked');
@@ -100,7 +95,6 @@ class UIManager {
             });
         }
         
-        // サウンドトグル
         if (this.elements.soundToggleMenu) {
             this.elements.soundToggleMenu.addEventListener('change', (e) => {
                 if (window.soundManager) {
@@ -109,14 +103,12 @@ class UIManager {
             });
         }
         
-        // 遊び方画面から戻る
         if (this.elements.backToMenuFromHow) {
             this.elements.backToMenuFromHow.addEventListener('click', () => {
                 this.showScreen('menu');
             });
         }
         
-        // 難易度タブ
         const tabButtons = document.querySelectorAll('.tab-btn');
         tabButtons.forEach(btn => {
             btn.addEventListener('click', () => {
@@ -132,7 +124,6 @@ class UIManager {
             });
         });
         
-        // 履歴クリアボタン
         if (this.elements.clearHistoryButton) {
             this.elements.clearHistoryButton.addEventListener('click', () => {
                 if (window.scoreHistoryManager) {
@@ -145,21 +136,18 @@ class UIManager {
             });
         }
         
-        // 履歴画面から戻る
         if (this.elements.backToMenuFromHistory) {
             this.elements.backToMenuFromHistory.addEventListener('click', () => {
                 this.showScreen('menu');
             });
         }
         
-        // セットアップ画面から戻る
         if (this.elements.backToMenuFromSetup) {
             this.elements.backToMenuFromSetup.addEventListener('click', () => {
                 this.showScreen('menu');
             });
         }
         
-        // 難易度カード選択
         const difficultyCards = document.querySelectorAll('.difficulty-card');
         difficultyCards.forEach(card => {
             card.addEventListener('click', () => {
@@ -168,7 +156,6 @@ class UIManager {
             });
         });
         
-        // 結果画面のボタン
         if (this.elements.viewHistory) {
             this.elements.viewHistory.addEventListener('click', () => {
                 this.showScreen('history');
@@ -199,7 +186,7 @@ class UIManager {
             'menu': 'menuScreen',
             'howToPlay': 'howToPlayScreen',
             'history': 'historyScreen',
-            'login': 'loginScreen',
+            'setup': 'setupScreen', // loginからsetupに変更
             'countdown': 'countdownScreen',
             'game': 'gameScreen',
             'wordMake': 'wordMakeScreen',
@@ -450,10 +437,9 @@ class UIManager {
         `;
     }
     
-    async showResult(playerName, totalScore, blockBreakScore, wordMakeScore, words, maxCombo, totalBlocks, difficulty, stageCount) {
+    async showResult(totalScore, blockBreakScore, wordMakeScore, words, maxCombo, totalBlocks, difficulty, stageCount) {
         console.log('📊 Showing result screen');
         
-        if (this.elements.resultName) this.elements.resultName.textContent = playerName;
         if (this.elements.finalScore) this.elements.finalScore.textContent = totalScore;
         if (this.elements.blockBreakScoreDisplay) this.elements.blockBreakScoreDisplay.textContent = blockBreakScore;
         if (this.elements.wordMakeScoreDisplay) this.elements.wordMakeScoreDisplay.textContent = wordMakeScore;
@@ -461,9 +447,8 @@ class UIManager {
         if (this.elements.maxCombo) this.elements.maxCombo.textContent = maxCombo;
         if (this.elements.totalBlocks) this.elements.totalBlocks.textContent = totalBlocks;
         
-        // スコアを保存
+        // スコアを保存（プレイヤー名なし）
         const result = await this.scoreHistoryManager.saveScore(
-            playerName,
             totalScore,
             difficulty,
             words.length,

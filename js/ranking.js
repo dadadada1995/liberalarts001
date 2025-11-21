@@ -1,15 +1,14 @@
-// スコア履歴管理クラス
+// スコア履歴管理クラス（ニックネーム機能削除版）
 class ScoreHistoryManager {
     constructor() {
         this.storageKey = 'christmasBlockBreakerScoreHistory';
-        this.maxEntries = 50; // 最大50件の履歴を保存
+        this.maxEntries = 50;
     }
     
-    // スコアを保存
-    async saveScore(playerName, score, difficulty, createdWords, maxCombo, stageCount) {
+    // スコアを保存（プレイヤー名なし）
+    async saveScore(score, difficulty, createdWords, maxCombo, stageCount) {
         const newEntry = {
             id: this.generateId(),
-            playerName: playerName,
             score: score,
             difficulty: difficulty,
             createdWords: createdWords,
@@ -21,16 +20,14 @@ class ScoreHistoryManager {
         };
         
         let history = this.getHistory();
-        history.unshift(newEntry); // 最新のものを先頭に追加
+        history.unshift(newEntry);
         
-        // 最大件数を超えた場合は古いものを削除
         if (history.length > this.maxEntries) {
             history = history.slice(0, this.maxEntries);
         }
         
         this.saveToLocalStorage(history);
         
-        // 個人ベストかどうかを判定
         const personalBest = this.getPersonalBest(difficulty);
         const isNewBest = !personalBest || score > personalBest.score;
         
@@ -41,7 +38,6 @@ class ScoreHistoryManager {
         };
     }
     
-    // 履歴を取得
     getHistory() {
         try {
             const data = localStorage.getItem(this.storageKey);
@@ -52,26 +48,22 @@ class ScoreHistoryManager {
         }
     }
     
-    // 難易度別の履歴を取得
     getHistoryByDifficulty(difficulty) {
         return this.getHistory()
             .filter(entry => entry.difficulty === difficulty)
             .sort((a, b) => b.score - a.score);
     }
     
-    // 個人ベストを取得
     getPersonalBest(difficulty) {
         const history = this.getHistoryByDifficulty(difficulty);
         return history.length > 0 ? history[0] : null;
     }
     
-    // 難易度内での順位を取得
     getRankInDifficulty(score, difficulty) {
         const history = this.getHistoryByDifficulty(difficulty);
         return history.filter(h => h.score > score).length + 1;
     }
     
-    // 統計情報を取得
     getStatistics(difficulty = null) {
         const history = difficulty 
             ? this.getHistoryByDifficulty(difficulty)
@@ -98,7 +90,6 @@ class ScoreHistoryManager {
         };
     }
     
-    // ローカルストレージに保存
     saveToLocalStorage(history) {
         try {
             localStorage.setItem(this.storageKey, JSON.stringify(history));
@@ -107,7 +98,6 @@ class ScoreHistoryManager {
         }
     }
     
-    // 履歴をクリア
     clearHistory() {
         if (confirm('⚠️ 全てのスコア履歴を削除しますか？この操作は取り消せません。')) {
             localStorage.removeItem(this.storageKey);
@@ -116,7 +106,6 @@ class ScoreHistoryManager {
         return false;
     }
     
-    // 履歴を表示
     displayHistory(difficulty = null) {
         const tbody = document.getElementById('historyTableBody');
         
@@ -134,7 +123,7 @@ class ScoreHistoryManager {
         if (history.length === 0) {
             tbody.innerHTML = `
                 <tr>
-                    <td colspan="6" style="text-align: center; padding: 40px; color: var(--text-dim);">
+                    <td colspan="5" style="text-align: center; padding: 40px; color: var(--text-dim);">
                         まだプレイ履歴がありません<br>
                         ゲームをプレイしてスコアを記録しましょう！🎄
                     </td>
@@ -146,7 +135,6 @@ class ScoreHistoryManager {
         history.forEach((entry, index) => {
             const row = document.createElement('tr');
             
-            // 難易度別の順位を表示
             const rankInDifficulty = this.getRankInDifficulty(entry.score, entry.difficulty);
             let rankDisplay = rankInDifficulty;
             if (rankInDifficulty === 1) rankDisplay = '🥇';
@@ -160,14 +148,12 @@ class ScoreHistoryManager {
             };
             const difficultyText = difficultyMap[entry.difficulty] || entry.difficulty;
             
-            // 個人ベストかどうかをチェック
             const personalBest = this.getPersonalBest(entry.difficulty);
             const isBest = personalBest && personalBest.id === entry.id;
             
             row.innerHTML = `
                 <td style="text-align: center; font-size: 20px;">${rankDisplay}</td>
-                <td style="font-weight: 600;">${this.escapeHtml(entry.playerName)}${isBest ? ' 👑' : ''}</td>
-                <td style="text-align: right; font-weight: 700; color: var(--primary-color);">${entry.score.toLocaleString()}</td>
+                <td style="text-align: right; font-weight: 700; color: var(--primary-color);">${entry.score.toLocaleString()}${isBest ? ' 👑' : ''}</td>
                 <td style="text-align: center;">${difficultyText}</td>
                 <td style="text-align: center; color: var(--text-dim); font-size: 12px;">${entry.date}<br>${entry.time}</td>
                 <td style="text-align: center;">
@@ -186,7 +172,6 @@ class ScoreHistoryManager {
             tbody.appendChild(row);
         });
         
-        // 削除ボタンのイベントリスナーを追加
         document.querySelectorAll('.delete-entry-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 const id = e.target.dataset.id;
@@ -195,11 +180,9 @@ class ScoreHistoryManager {
             });
         });
         
-        // 統計情報を更新
         this.displayStatistics(difficulty);
     }
     
-    // 統計情報を表示
     displayStatistics(difficulty = null) {
         const stats = this.getStatistics(difficulty);
         const statsContainer = document.getElementById('statisticsContainer');
@@ -242,23 +225,14 @@ class ScoreHistoryManager {
         `;
     }
     
-    // エントリーを削除
     deleteEntry(id) {
-        if (!confirm('このスコアを削除しますか?')) return;
+        if (!confirm('このスコアを削除しますか？')) return;
         
         let history = this.getHistory();
         history = history.filter(entry => entry.id !== id);
         this.saveToLocalStorage(history);
     }
     
-    // HTMLエスケープ
-    escapeHtml(text) {
-        const div = document.createElement('div');
-        div.textContent = text;
-        return div.innerHTML;
-    }
-    
-    // ユニークIDを生成
     generateId() {
         return Date.now().toString(36) + Math.random().toString(36).substr(2, 9);
     }
