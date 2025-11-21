@@ -1,4 +1,4 @@
-// ゲームメインクラス（特別ステージバグ修正版）
+// ゲームメインクラス（BGM制御追加版）
 class Game {
     constructor() {
         console.log('🎮 Game initializing...');
@@ -21,6 +21,7 @@ class Game {
         this.maxCombo = 0;
         this.stageCount = 1;
         this.santaSpawned = false;
+        this.santaDefeated = false; // サンタ撃破フラグを追加
         
         this.wordMakeScore = 0;
         this.wordMakeTime = CONFIG.WORD_MAKE_TIME;
@@ -160,7 +161,7 @@ class Game {
                 clearInterval(countInterval);
                 setTimeout(() => {
                     if (resumeAfterSanta) {
-                        console.log('▶️ Resuming game after santa defeat');
+                        console.log('▶️ Resuming game for special stage');
                         this.resumeGame();
                     } else {
                         console.log('🎮 Countdown finished, starting block break phase');
@@ -199,42 +200,34 @@ class Game {
     }
     
     resumeGame() {
-        console.log('▶️ Game resumed after santa defeat');
+        console.log('▶️ Game resumed for special stage');
         this.isPaused = false;
         
         // ゲーム画面に戻る
         this.ui.showScreen('game');
         
-        // 保存された難易度設定を強制的に再適用（最重要）
+        // 保存された難易度設定を再適用（スピードを維持）
         if (this.difficultySettings) {
             CONFIG.PHYSICS.BALL_SPEED = this.difficultySettings.ballSpeed;
             CONFIG.PHYSICS.BALL_MAX_SPEED = this.difficultySettings.ballMaxSpeed;
-            CONFIG.PHYSICS.BALL_MIN_SPEED = this.difficultySettings.ballSpeed * 0.6; // 最小速度も調整
             CONFIG.PHYSICS.PADDLE_WIDTH = this.difficultySettings.paddleWidth;
-            console.log('⚙️ Difficulty settings forcefully restored:', this.difficultySettings);
-            console.log('✅ Ball speed set to:', CONFIG.PHYSICS.BALL_SPEED);
-            console.log('✅ Ball max speed set to:', CONFIG.PHYSICS.BALL_MAX_SPEED);
-            console.log('✅ Ball min speed set to:', CONFIG.PHYSICS.BALL_MIN_SPEED);
+            console.log('⚙️ Difficulty settings restored:', this.difficultySettings);
         }
         
-        // 特別ステージのブロックを生成
+        // 特別ステージのブロックを作成
         if (this.physics) {
-            // 既存のブロックを全て削除してから新しいブロックを作成
-            console.log('🎄 Creating special stage blocks...');
-            this.physics.createBlocks(true); // 強制的に特別ステージとして作成
-            console.log(`✅ Special stage blocks created: ${this.physics.blocks.length} blocks`);
-            
-            // ボールをリセット（難易度設定適用後）
-            this.physics.resetBall();
-            console.log('✅ Ball reset with speed:', CONFIG.PHYSICS.BALL_SPEED);
+            this.physics.createBlocks(this.isSpecialStage);
+            console.log(`✅ Special Stage: ${this.physics.blocks.length} blocks created`);
         }
         
-        // コンボをリセット
+        // ボールをリセット（保存された難易度設定でボールを作成）
+        if (this.physics) {
+            this.physics.resetBall();
+        }
+        
+        this.santaSpawned = false;
         this.combo = 0;
         this.ui.updateCombo(0);
-        
-        // サンタスポーンフラグをリセット（特別ステージではサンタは出現しない）
-        this.santaSpawned = false;
         
         // ゲームループを再開
         this.startGameLoop();
@@ -247,7 +240,7 @@ class Game {
             window.soundManager.resumeBGM();
         }
         
-        console.log('✅ Special stage resumed successfully');
+        console.log('✅ Special stage started successfully');
     }
     
     startBlockBreakPhase() {
@@ -310,8 +303,18 @@ class Game {
             this.physics.movePaddle(touchX);
         };
         
+        this.keyHandler = (e) => {
+            if (e.key === 'r' || e.key === 'R') {
+                if (this.physics && this.ballsLeft > 0 && !this.isPaused) {
+                    this.physics.resetBall();
+                    this.showManualResetFeedback();
+                }
+            }
+        };
+        
         canvas.addEventListener('mousemove', this.mouseMoveHandler, { passive: true });
         canvas.addEventListener('touchmove', this.touchMoveHandler, { passive: false });
+        document.addEventListener('keydown', this.keyHandler, { passive: true });
     }
     
     startGameLoop() {
@@ -367,10 +370,7 @@ class Game {
                 }
             }
             
-            // 特別ステージ中はサンタを出現させない
-            if (!this.isSpecialStage) {
-                this.checkSantaSpawn();
-            }
+            this.checkSantaSpawn();
             
             if (this.blockBreakTime <= 0) {
                 this.endBlockBreakPhase();
@@ -446,35 +446,20 @@ class Game {
         this.blockBreakScore += CONFIG.SCORE.SANTA_BLOCK_BONUS;
         this.ui.updateScore(this.blockBreakScore);
         
-        // ゲームを一時停止
-        this.pauseGame();
-        
-        this.showMerryChristmasPopup();
-        
+        // サンタブロックを削除
         this.physics.removeSantaBlock();
+        
+        // Merry Christmasポップアップを表示
+        this.showMerryChristmasPopup();
         
         if (window.soundManager) {
             window.soundManager.playStageComplete();
         }
         
-        // 3秒後に特別ステージを開始
-        setTimeout(() => {
-            // 特別ステージフラグをセット
-            this.isSpecialStage = true;
-            console.log('🎄 Entering special stage mode');
-            
-            // 難易度設定を確認
-            if (this.difficultySettings) {
-                CONFIG.PHYSICS.BALL_SPEED = this.difficultySettings.ballSpeed;
-                CONFIG.PHYSICS.BALL_MAX_SPEED = this.difficultySettings.ballMaxSpeed;
-                CONFIG.PHYSICS.BALL_MIN_SPEED = this.difficultySettings.ballSpeed * 0.6;
-                console.log('🎅 Before special stage - Ball speed:', CONFIG.PHYSICS.BALL_SPEED);
-            }
-            
-            // カウントダウン画面を表示
-            this.ui.showScreen('countdown');
-            this.countdown(true);
-        }, 3000);
+        // 特別ステージフラグを立てる（次のステージクリア時に使用）
+        this.santaDefeated = true;
+        
+        console.log('✅ Santa defeated! Special stage will start after clearing all blocks');
     }
     
     showMerryChristmasPopup() {
@@ -502,44 +487,41 @@ class Game {
             window.soundManager.playStageComplete();
         }
         
-        setTimeout(() => {
-            console.log(`🎮 Starting Stage ${this.stageCount}`);
+        // サンタを倒していた場合、特別ステージへ移行
+        if (this.santaDefeated) {
+            console.log('🎄 Entering special stage!');
+            this.isSpecialStage = true;
+            this.santaDefeated = false; // フラグをリセット
             
-            // 特別ステージが終了したら通常ステージに戻す
-            if (this.isSpecialStage) {
-                this.isSpecialStage = false;
-                console.log('✅ Special stage completed, returning to normal stage');
-            }
-            
-            // 難易度設定を強制的に再適用（スピードを維持）
-            if (this.difficultySettings) {
-                CONFIG.PHYSICS.BALL_SPEED = this.difficultySettings.ballSpeed;
-                CONFIG.PHYSICS.BALL_MAX_SPEED = this.difficultySettings.ballMaxSpeed;
-                CONFIG.PHYSICS.BALL_MIN_SPEED = this.difficultySettings.ballSpeed * 0.6;
-                CONFIG.PHYSICS.PADDLE_WIDTH = this.difficultySettings.paddleWidth;
-                console.log('✅ Speed maintained for stage:', CONFIG.PHYSICS.BALL_SPEED);
-                console.log('✅ Max speed:', CONFIG.PHYSICS.BALL_MAX_SPEED);
-                console.log('✅ Min speed:', CONFIG.PHYSICS.BALL_MIN_SPEED);
-            }
-            
-            if (this.physics) {
-                this.physics.createBlocks(this.isSpecialStage);
-                console.log(`✅ Stage ${this.stageCount}: ${this.physics.blocks.length} blocks created (Special: ${this.isSpecialStage})`);
+            setTimeout(() => {
+                this.pauseGame();
+                this.ui.showScreen('countdown');
+                this.countdown(true);
+            }, 2000);
+        } else {
+            // 通常ステージを継続
+            setTimeout(() => {
+                console.log(`🎮 Starting Stage ${this.stageCount}`);
                 
-                // ブロック作成後、再度難易度設定を確認
+                // 難易度設定を再確認（スピードを維持）
                 if (this.difficultySettings) {
                     CONFIG.PHYSICS.BALL_SPEED = this.difficultySettings.ballSpeed;
                     CONFIG.PHYSICS.BALL_MAX_SPEED = this.difficultySettings.ballMaxSpeed;
-                    console.log('✅ Double-check: Speed is', CONFIG.PHYSICS.BALL_SPEED);
+                    console.log('✅ Speed maintained:', CONFIG.PHYSICS.BALL_SPEED);
                 }
-            }
-            
-            this.santaSpawned = false;
-            this.combo = 0;
-            this.ui.updateCombo(0);
-            
-            this.showStageStartAnimation();
-        }, 2000);
+                
+                if (this.physics) {
+                    this.physics.createBlocks(this.isSpecialStage);
+                    console.log(`✅ Stage ${this.stageCount}: ${this.physics.blocks.length} blocks created`);
+                }
+                
+                this.santaSpawned = false;
+                this.combo = 0;
+                this.ui.updateCombo(0);
+                
+                this.showStageStartAnimation();
+            }, 2000);
+        }
     }
     
     showStageCompleteAnimation() {
@@ -580,6 +562,21 @@ class Game {
         }, 1500);
     }
     
+    showManualResetFeedback() {
+        const feedback = document.createElement('div');
+        feedback.className = 'manual-reset-feedback';
+        feedback.textContent = 'BALL RESET';
+        document.body.appendChild(feedback);
+        
+        setTimeout(() => {
+            feedback.remove();
+        }, 800);
+        
+        if (window.soundManager) {
+            window.soundManager.playResetWarning();
+        }
+    }
+    
     onBallLost() {
         console.log('❌ Ball lost!');
         
@@ -597,7 +594,6 @@ class Game {
                     if (this.difficultySettings) {
                         CONFIG.PHYSICS.BALL_SPEED = this.difficultySettings.ballSpeed;
                         CONFIG.PHYSICS.BALL_MAX_SPEED = this.difficultySettings.ballMaxSpeed;
-                        console.log('✅ Ball lost - Speed restored to:', CONFIG.PHYSICS.BALL_SPEED);
                     }
                     this.physics.resetBall();
                 }
@@ -654,6 +650,9 @@ class Game {
             canvas.removeEventListener('mousemove', this.mouseMoveHandler);
             canvas.removeEventListener('touchmove', this.touchMoveHandler);
         }
+        if (this.keyHandler) {
+            document.removeEventListener('keydown', this.keyHandler);
+        }
     }
     
     startWordMakePhase() {
@@ -661,10 +660,16 @@ class Game {
         
         this.currentPhase = 'wordMake';
         this.wordMakeTime = CONFIG.WORD_MAKE_TIME;
-        this.availableLetters = [...this.collectedLetters];
+        
+        // 収集した文字をアルファベット順にソート
+        this.availableLetters = [...this.collectedLetters].sort((a, b) => a.localeCompare(b));
+        
         this.currentWordInput = '';
         this.createdWords = [];
         this.usedLettersInCurrentWord = [];
+        
+        console.log('📊 Available letters (sorted):', this.availableLetters);
+        console.log('Total letters:', this.availableLetters.length);
         
         this.ui.showScreen('wordMake');
         this.ui.displayWordMakePhase(this.availableLetters, this.wordMakeTime, this.wordMakeScore);
@@ -688,16 +693,30 @@ class Game {
     addLetterToWord(letter) {
         const index = this.availableLetters.indexOf(letter);
         if (index === -1) {
+            console.log('⚠️ Letter not available:', letter);
             return;
         }
+        
+        console.log('📝 Adding letter to word:', letter);
+        console.log('Before - Available:', this.availableLetters);
+        console.log('Before - Used:', this.usedLettersInCurrentWord);
         
         this.currentWordInput += letter;
         this.availableLetters.splice(index, 1);
         this.usedLettersInCurrentWord.push(letter);
+        
+        console.log('After - Available:', this.availableLetters);
+        console.log('After - Used:', this.usedLettersInCurrentWord);
+        console.log('Current word:', this.currentWordInput);
+        
         this.ui.updateWordMakeDisplay(this.currentWordInput, this.availableLetters, this.usedLettersInCurrentWord);
     }
     
     clearCurrentWord() {
+        console.log('🗑️ Clearing current word');
+        console.log('Before clear - Available:', this.availableLetters);
+        console.log('Before clear - Used:', this.usedLettersInCurrentWord);
+        
         // 使用中の文字を利用可能な文字に戻す
         for (let letter of this.usedLettersInCurrentWord) {
             this.availableLetters.push(letter);
@@ -705,11 +724,17 @@ class Game {
         
         this.currentWordInput = '';
         this.usedLettersInCurrentWord = [];
+        
+        console.log('After clear - Available:', this.availableLetters);
+        console.log('After clear - Used:', this.usedLettersInCurrentWord);
+        
         this.ui.updateWordMakeDisplay(this.currentWordInput, this.availableLetters, this.usedLettersInCurrentWord);
     }
     
     submitWord() {
         const word = this.currentWordInput.toLowerCase();
+        
+        console.log('📤 Submitting word:', word);
         
         if (word.length < 3) {
             this.ui.showWordMakeMessage('3文字以上の単語を入力してください', 'error');
@@ -740,12 +765,21 @@ class Game {
         
         this.createdWords.push({ word: word, score: score });
         
+        console.log('✅ Word accepted! Score:', score);
+        console.log('Before submit - Available:', this.availableLetters);
+        console.log('Before submit - Used:', this.usedLettersInCurrentWord);
+        
         this.ui.updateWordMakeScore(this.wordMakeScore);
         this.ui.addCreatedWord(word, score);
         this.ui.showWordMakeMessage('+' + score + '点！', 'success');
         
+        // 単語送信後、使用した文字は戻さない（消費される）
         this.currentWordInput = '';
         this.usedLettersInCurrentWord = [];
+        
+        console.log('After submit - Available:', this.availableLetters);
+        console.log('After submit - Used:', this.usedLettersInCurrentWord);
+        
         this.ui.updateWordMakeDisplay(this.currentWordInput, this.availableLetters, this.usedLettersInCurrentWord);
         
         if (window.soundManager) {
@@ -852,8 +886,9 @@ class Game {
         this.totalBlocksDestroyed = 0;
         this.stageCount = 1;
         this.santaSpawned = false;
+        this.santaDefeated = false; // サンタ撃破フラグもリセット
         this.isPlaying = false;
-        this.difficultySettings = null; // 難易度設定もリセット
+        this.difficultySettings = null;
         
         this.ui.showScreen('setup');
         
