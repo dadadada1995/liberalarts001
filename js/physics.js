@@ -236,10 +236,11 @@ class PhysicsEngine {
             window.soundManager.playBlockHit();
         }
         
-        // 貫通モードでない場合のみ速度を維持
+        // 貫通モードでない場合のみ速度を維持（跳ね返り）
         if (!block.penetration) {
             this.maintainBallSpeed();
         }
+        // 貫通モードの場合は何もしない（ボールはそのまま進む）
     }
     
     maintainBallSpeed() {
@@ -296,7 +297,7 @@ class PhysicsEngine {
         });
         this.blocks = [];
         
-        console.log(isSpecialStage ? '❄️ Creating special stage blocks...' : '🧱 Creating new blocks...');
+        console.log(isSpecialStage ? '🎄 Creating Christmas special stage blocks...' : '🧱 Creating new blocks...');
         
         const config = isSpecialStage ? CONFIG.SPECIAL_STAGE : CONFIG.BLOCKS;
         const rows = isSpecialStage ? config.ROWS : CONFIG.BLOCKS.ROWS;
@@ -315,6 +316,12 @@ class PhysicsEngine {
                 const y = startY + row * (height + padding);
                 
                 const letter = CONFIG.LETTERS[Math.floor(Math.random() * CONFIG.LETTERS.length)];
+                
+                // 特別ステージの場合はクリスマスカラー（赤と緑）
+                let christmasColor;
+                if (isSpecialStage) {
+                    christmasColor = (row + col) % 2 === 0 ? 'red' : 'green';
+                }
                 const hue = isSpecialStage ? 0 : (col * 30 + row * 60) % 360;
                 
                 const block = Matter.Bodies.rectangle(x, y, width, height, {
@@ -329,11 +336,14 @@ class PhysicsEngine {
                     collisionFilter: {
                         category: 0x0001,
                         mask: 0x0002
-                    }
+                    },
+                    // 貫通モードの場合、衝突は検知するが物理的な反発を無効化
+                    isSensor: isSpecialStage
                 });
                 
                 block.letter = letter;
                 block.hue = hue;
+                block.christmasColor = christmasColor;
                 block.animationOffset = Math.random() * Math.PI * 2;
                 block.isSpecialStage = isSpecialStage;
                 block.penetration = isSpecialStage;
@@ -342,7 +352,7 @@ class PhysicsEngine {
             }
         }
         
-        console.log(`✅ ${this.blocks.length}個のブロックを作成${isSpecialStage ? '（特別ステージ）' : ''}`);
+        console.log(`✅ ${this.blocks.length}個のブロックを作成${isSpecialStage ? '（クリスマス特別ステージ）' : ''}`);
     }
     
     createBall() {
@@ -591,21 +601,34 @@ class PhysicsEngine {
         this.ctx.scale(pulse, pulse);
         
         if (block.isSpecialStage) {
-            // 特別ステージ用の白いブロック
+            // クリスマス特別ステージ用のブロック（赤と緑）
+            const isRed = block.christmasColor === 'red';
+            
             // 影
-            this.ctx.fillStyle = 'rgba(200, 220, 255, 0.4)';
+            this.ctx.fillStyle = isRed ? 'rgba(139, 0, 0, 0.4)' : 'rgba(0, 100, 0, 0.4)';
             this.ctx.fillRect(-w/2 + 2, -h/2 + 2, w, h);
             
-            // メイン面（白いグラデーション）
+            // メイン面（クリスマスカラーのグラデーション）
             const gradient = this.ctx.createLinearGradient(-w/2, -h/2, w/2, h/2);
-            gradient.addColorStop(0, '#ffffff');
-            gradient.addColorStop(1, '#e0f0ff');
+            if (isRed) {
+                gradient.addColorStop(0, '#ff4444');
+                gradient.addColorStop(1, '#cc0000');
+            } else {
+                gradient.addColorStop(0, '#44ff44');
+                gradient.addColorStop(1, '#008800');
+            }
             this.ctx.fillStyle = gradient;
             this.ctx.fillRect(-w/2, -h/2, w, h);
             
-            // 雪の結晶模様
-            this.ctx.strokeStyle = 'rgba(180, 210, 255, 0.6)';
-            this.ctx.lineWidth = 1;
+            // キラキラ効果
+            this.ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
+            this.ctx.beginPath();
+            this.ctx.arc(-w/4, -h/4, 3, 0, Math.PI * 2);
+            this.ctx.fill();
+            
+            // 雪の結晶模様（白）
+            this.ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
+            this.ctx.lineWidth = 1.5;
             this.ctx.beginPath();
             this.ctx.moveTo(-w/4, 0);
             this.ctx.lineTo(w/4, 0);
@@ -614,16 +637,19 @@ class PhysicsEngine {
             this.ctx.stroke();
             
             // ハイライト
-            this.ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+            this.ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
             this.ctx.fillRect(-w/2, -h/2, w * 0.4, h * 0.3);
             
-            // 文字（青色）
+            // 文字（白色で見やすく）
             if (block.letter) {
-                this.ctx.fillStyle = '#4080ff';
+                this.ctx.fillStyle = '#ffffff';
                 this.ctx.font = 'bold 16px Arial';
                 this.ctx.textAlign = 'center';
                 this.ctx.textBaseline = 'middle';
+                this.ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
+                this.ctx.shadowBlur = 3;
                 this.ctx.fillText(block.letter, 0, 0);
+                this.ctx.shadowBlur = 0;
             }
         } else {
             // 通常ブロック
