@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎄 クリスマス英語ブロック崩し</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <!-- 3Dレンダリング背景 -->
+    <div id="renderer3d"></div>
+    
+    <canvas id="particleCanvas"></canvas>
+
+    <div class="snowflakes" aria-hidden="true">
+        <div class="snowflake">❅</div>
+        <div class="snowflake">❆</div>
+        <div class="snowflake">❅</div>
+        <div class="snowflake">❆</div>
+        <div class="snowflake">❅</div>
+        <div class="snowflake">❆</div>
+        <div class="snowflake">❅</div>
+        <div class="snowflake">❆</div>
+        <div class="snowflake">❅</div>
+        <div class="snowflake">❆</div>
+        <div class="snowflake">❅</div>
+        <div class="snowflake">❆</div>
+    </div>
+
+    <!-- メインメニュー画面 -->
+    <div id="menuScreen" class="screen active">
+        <div class="menu-container">
+            <div class="game-logo">
+                <div class="logo-icon">🎄</div>
+                <h1 class="logo-title">CHRISTMAS<br>BLOCK BREAKER</h1>
+                <div class="logo-subtitle">English Learning Game</div>
+            </div>
+            
+            <div class="menu-buttons">
+                <button id="playButton" class="menu-btn primary-menu-btn">
+                    <span class="btn-icon">🎮</span>
+                    <span class="btn-text">PLAY GAME</span>
+                </button>
+                <button id="historyButton" class="menu-btn secondary-menu-btn">
+                    <span class="btn-icon">📊</span>
+                    <span class="btn-text">SCORE HISTORY</span>
+                </button>
+                <button id="howToPlayButton" class="menu-btn secondary-menu-btn">
+                    <span class="btn-icon">❓</span>
+                    <span class="btn-text">HOW TO PLAY</span>
+                </button>
+            </div>
+            
+            <div class="menu-footer">
+                <div class="sound-toggle-menu">
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="soundToggleMenu" checked>
+                        <span class="toggle-slider"></span>
+                    </label>
+                    <span class="toggle-label">🔊 SOUND</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 遊び方画面 -->
+    <div id="howToPlayScreen" class="screen">
+        <div class="container how-to-container">
+            <h2 class="section-title">HOW TO PLAY</h2>
+            
+            <div class="how-to-content">
+                <div class="how-to-item">
+                    <div class="how-to-icon">🎯</div>
+                    <h3>ゲームの目的</h3>
+                    <p>ブロックを壊してアルファベットを集め、英単語を作ってスコアを稼ごう！</p>
+                </div>
+                
+                <div class="how-to-item">
+                    <div class="how-to-icon">⭐</div>
+                    <h3>スコアシステム</h3>
+                    <p>ブロック破壊: +10点<br>3文字単語: +100点<br>4文字単語: +200点<br>5文字単語: +400点<br>6文字以上: +800点〜</p>
+                </div>
+                
+                <div class="how-to-item">
+                    <div class="how-to-icon">🔥</div>
+                    <h3>コンボシステム</h3>
+                    <p>連続でブロックを壊すとコンボ発生！<br>コンボ数 × 50点のボーナス</p>
+                </div>
+                
+                <div class="how-to-item">
+                    <div class="how-to-icon">⚠️</div>
+                    <h3>注意事項</h3>
+                    <p>制限時間は60秒<br>ボールは3個まで<br>サンタブロックを壊すと+5000点！</p>
+                </div>
+            </div>
+            
+            <button id="backToMenuFromHow" class="menu-btn primary-menu-btn">
+                <span class="btn-text">BACK TO MENU</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- スコア履歴画面 -->
+    <div id="historyScreen" class="screen">
+        <div class="container history-container">
+            <h2 class="section-title">📊 SCORE HISTORY 📊</h2>
+            
+            <!-- 統計情報 -->
+            <div id="statisticsContainer" class="statistics-section"></div>
+            
+            <div class="difficulty-tabs">
+                <button class="tab-btn active" data-difficulty="all">
+                    <span>ALL</span>
+                </button>
+                <button class="tab-btn" data-difficulty="easy">
+                    <span>⭐ EASY</span>
+                </button>
+                <button class="tab-btn" data-difficulty="normal">
+                    <span>⭐⭐ NORMAL</span>
+                </button>
+                <button class="tab-btn" data-difficulty="hard">
+                    <span>⭐⭐⭐ HARD</span>
+                </button>
+            </div>
+            
+            <div class="history-table-container">
+                <table class="history-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 60px;">順位</th>
+                            <th>プレイヤー</th>
+                            <th style="width: 120px;">スコア</th>
+                            <th style="width: 100px;">難易度</th>
+                            <th style="width: 140px;">日時</th>
+                            <th style="width: 80px;">操作</th>
+                        </tr>
+                    </thead>
+                    <tbody id="historyTableBody">
+                        <tr>
+                            <td colspan="6" style="text-align: center; padding: 40px;">
+                                Loading...
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            
+            <div class="history-info">
+                <p style="font-size: 14px; color: var(--text-dim); margin: 10px 0;">
+                    💡 あなたの過去のプレイ記録が表示されます（最大50件）
+                </p>
+            </div>
+            
+            <div class="history-actions">
+                <button id="clearHistoryButton" class="menu-btn danger-btn">
+                    <span class="btn-text">CLEAR HISTORY</span>
+                </button>
+                <button id="backToMenuFromHistory" class="menu-btn primary-menu-btn">
+                    <span class="btn-text">BACK TO MENU</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ログイン画面 -->
+    <div id="loginScreen" class="screen">
+        <div class="container game-setup-container">
+            <h2 class="section-title">GAME SETUP</h2>
+            
+            <div class="setup-section">
+                <label class="setup-label">PLAYER NAME</label>
+                <input type="text" id="nicknameInput" class="game-input" placeholder="Enter your name" maxlength="15">
+            </div>
+            
+            <div class="setup-section">
+                <label class="setup-label">DIFFICULTY</label>
+                <div class="difficulty-selector">
+                    <button class="difficulty-card active" data-difficulty="easy">
+                        <div class="card-icon">⭐</div>
+                        <div class="card-title">EASY</div>
+                        <div class="card-desc">Ball Speed: Slow<br>Paddle: Large</div>
+                    </button>
+                    <button class="difficulty-card" data-difficulty="normal">
+                        <div class="card-icon">⭐⭐</div>
+                        <div class="card-title">NORMAL</div>
+                        <div class="card-desc">Ball Speed: Medium<br>Paddle: Medium</div>
+                    </button>
+                    <button class="difficulty-card" data-difficulty="hard">
+                        <div class="card-icon">⭐⭐⭐</div>
+                        <div class="card-title">HARD</div>
+                        <div class="card-desc">Ball Speed: Fast<br>Paddle: Small</div>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="setup-actions">
+                <button id="startButton" class="menu-btn primary-menu-btn">
+                    <span class="btn-icon">🎮</span>
+                    <span class="btn-text">START GAME</span>
+                </button>
+                <button id="backToMenuFromSetup" class="menu-btn secondary-menu-btn">
+                    <span class="btn-text">BACK</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- カウントダウン画面 -->
+    <div id="countdownScreen" class="screen">
+        <div class="countdown-container">
+            <div class="countdown-circle">
+                <span id="countdownNumber" class="countdown-text">3</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- ゲーム画面 -->
+    <div id="gameScreen" class="screen">
+        <div class="game-header">
+            <div class="header-left">
+                <div class="stat-box">
+                    <div class="stat-icon">⏰</div>
+                    <div class="stat-content">
+                        <div class="stat-label">TIME</div>
+                        <div id="timer" class="stat-value">60</div>
+                    </div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-icon">🎈</div>
+                    <div class="stat-content">
+                        <div class="stat-label">BALL</div>
+                        <div id="ballCount" class="stat-value">3</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="header-center">
+                <div class="score-display">
+                    <div class="score-label">SCORE</div>
+                    <div id="score" class="score-value">0</div>
+                </div>
+            </div>
+            
+            <div class="header-right">
+                <div class="stat-box">
+                    <div class="stat-icon">🔥</div>
+                    <div class="stat-content">
+                        <div class="stat-label">COMBO</div>
+                        <div id="combo" class="stat-value combo-value">0</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="game-canvas-wrapper">
+            <canvas id="gameCanvas"></canvas>
+            <div class="progress-bar-container">
+                <div id="progressBar" class="progress-bar"></div>
+            </div>
+        </div>
+
+        <div class="word-panel">
+            <div class="panel-header">
+                <span class="panel-title">COLLECTED LETTERS</span>
+            </div>
+            <div id="collectedLetters" class="letters-grid"></div>
+        </div>
+    </div>
+
+    <!-- 英単語作成画面 -->
+    <div id="wordMakeScreen" class="screen">
+        <div class="container word-make-container">
+            <h2 class="section-title">📝 WORD MAKING PHASE</h2>
+            
+            <div class="word-make-header">
+                <div class="stat-box">
+                    <div class="stat-icon">⏰</div>
+                    <div class="stat-content">
+                        <div class="stat-label">TIME</div>
+                        <div id="wordMakeTimer" class="stat-value">30</div>
+                    </div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-icon">⭐</div>
+                    <div class="stat-content">
+                        <div class="stat-label">SCORE</div>
+                        <div id="wordMakeScore" class="stat-value">0</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="word-make-info">
+                <p>収集した文字を使って英単語を作成しましょう！</p>
+            </div>
+            
+            <div class="word-section">
+                <label class="section-label">現在の単語</label>
+                <div id="currentWordDisplay" class="word-display">
+                    <span class="empty-message">文字をクリックして単語を作成</span>
+                </div>
+            </div>
+            
+            <div class="word-controls">
+                <button id="submitWordBtn" class="word-btn primary-word-btn">
+                    <span class="btn-icon">✓</span>
+                    <span class="btn-text">送信</span>
+                </button>
+                <button id="clearWordBtn" class="word-btn secondary-word-btn">
+                    <span class="btn-icon">✗</span>
+                    <span class="btn-text">クリア</span>
+                </button>
+            </div>
+            
+            <div id="wordMakeMessage" class="word-make-message"></div>
+            
+            <div class="word-section">
+                <label class="section-label">利用可能な文字</label>
+                <div id="availableLettersDisplay" class="letters-display"></div>
+            </div>
+            
+            <div class="word-section">
+                <label class="section-label">作成した単語</label>
+                <div id="createdWordsList" class="created-words-list">
+                    <span class="empty-message">まだ単語を作成していません</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 結果画面 -->
+    <div id="resultScreen" class="screen">
+        <div class="container result-container">
+            <div class="result-rank" id="rankDisplay">
+                <div class="rank-badge">
+                    <div class="rank-icon">🏆</div>
+                    <div class="rank-text">RANK S</div>
+                </div>
+            </div>
+            
+            <h2 class="section-title">GAME OVER</h2>
+            
+            <div class="result-stats">
+                <div class="result-stat-item">
+                    <div class="result-stat-label">PLAYER</div>
+                    <div id="resultName" class="result-stat-value">---</div>
+                </div>
+                <div class="result-stat-item highlight">
+                    <div class="result-stat-label">FINAL SCORE</div>
+                    <div id="finalScore" class="result-stat-value score-highlight">0</div>
+                </div>
+                <div class="result-stat-item">
+                    <div class="result-stat-label">BLOCK BREAK SCORE</div>
+                    <div id="blockBreakScoreDisplay" class="result-stat-value">0</div>
+                </div>
+                <div class="result-stat-item">
+                    <div class="result-stat-label">WORD MAKE SCORE</div>
+                    <div id="wordMakeScoreDisplay" class="result-stat-value">0</div>
+                </div>
+                <div class="result-stat-item">
+                    <div class="result-stat-label">WORDS CREATED</div>
+                    <div id="wordCount" class="result-stat-value">0</div>
+                </div>
+                <div class="result-stat-item">
+                    <div class="result-stat-label">MAX COMBO</div>
+                    <div id="maxCombo" class="result-stat-value">0</div>
+                </div>
+                <div class="result-stat-item">
+                    <div class="result-stat-label">BLOCKS DESTROYED</div>
+                    <div id="totalBlocks" class="result-stat-value">0</div>
+                </div>
+            </div>
+            
+            <div id="resultCreatedWords" class="words-created-section"></div>
+            
+            <div class="result-actions">
+                <button id="playAgain" class="menu-btn primary-menu-btn">
+                    <span class="btn-icon">🔄</span>
+                    <span class="btn-text">PLAY AGAIN</span>
+                </button>
+                <button id="viewHistory" class="menu-btn secondary-menu-btn">
+                    <span class="btn-icon">📊</span>
+                    <span class="btn-text">VIEW HISTORY</span>
+                </button>
+                <button id="backToMenuFromResult" class="menu-btn secondary-menu-btn">
+                    <span class="btn-text">MAIN MENU</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="merryChristmasPopup" class="merry-christmas-popup">
+        <div class="popup-content">
+            <div class="popup-icon">🎅🎄</div>
+            <h2 class="popup-title">Merry Christmas!</h2>
+            <p class="popup-bonus">+5000 BONUS!</p>
+        </div>
+    </div>
+
+    <!-- スクリプト読み込み（順序が重要！） -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.19.0/matter.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    
+    <!-- 1. 最初に設定ファイル -->
+    <script src="js/config.js"></script>
+    
+    <!-- 2. ユーティリティクラス -->
+    <script src="js/sound.js"></script>
+    <script src="js/particles.js"></script>
+    <script src="js/renderer3d.js"></script>
+    
+    <!-- 3. ランキングとUI -->
+    <script src="js/ranking.js"></script>
+    <script src="js/ui.js"></script>
+    
+    <!-- 4. 物理エンジン -->
+    <script src="js/physics.js"></script>
+    
+    <!-- 5. 最後にメインゲームクラス -->
+    <script src="js/game.js"></script>
+
+    <!-- 初期化スクリプト -->
+    <script>
+        console.log('🎄 Christmas Block Breaker - Initializing...');
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initGame);
+        } else {
+            initGame();
+        }
+
+        function initGame() {
+            console.log('✅ DOM Ready - Starting initialization');
+            
+            setTimeout(() => {
+                try {
+                    if (typeof CONFIG === 'undefined') {
+                        console.error('❌ CONFIG is not defined! Check config.js loading.');
+                        alert('設定ファイルの読み込みに失敗しました。ページを再読み込みしてください。');
+                        return;
+                    }
+                    
+                    console.log('✅ CONFIG loaded successfully');
+                    
+                    // 3Dレンダラーの初期化
+                    if (typeof THREE !== 'undefined') {
+                        window.renderer3d = new Renderer3D();
+                        console.log('✅ 3D Renderer initialized');
+                    } else {
+                        console.warn('⚠️ Three.js not loaded, 3D effects disabled');
+                    }
+                    
+                    if (window.game) {
+                        console.log('🗑️ Removing old game instance');
+                        delete window.game;
+                    }
+                    
+                    window.game = new Game();
+                    console.log('✅ Game initialized successfully');
+                    
+                    console.log('📊 Initialization complete:', {
+                        hasGame: !!window.game,
+                        hasUI: !!window.game?.ui,
+                        has3DRenderer: !!window.renderer3d,
+                        hasStartButton: !!document.getElementById('startButton'),
+                        hasNicknameInput: !!document.getElementById('nicknameInput'),
+                        hasCONFIG: typeof CONFIG !== 'undefined'
+                    });
+                    
+                } catch (error) {
+                    console.error('❌ Initialization error:', error);
+                    console.error('Stack trace:', error.stack);
+                    alert('ゲームの初期化に失敗しました: ' + error.message);
+                }
+            }, 100);
+        }
+    </script>
+</body>
+</html>
