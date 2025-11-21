@@ -943,6 +943,21 @@ input:checked + .toggle-slider:before {
     animation: letterPop 0.3s ease;
 }
 
+/* 使用中の文字バッジ */
+.letter-badge.used {
+    background: rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 0.4);
+    cursor: not-allowed;
+    box-shadow: none;
+    border: 2px dashed rgba(255, 255, 255, 0.2);
+}
+
+.letter-badge.used:hover {
+    transform: none;
+    background: rgba(255, 255, 255, 0.1);
+    box-shadow: none;
+}
+
 .empty-message {
     color: var(--text-dim);
     font-size: 14px;
@@ -1028,13 +1043,13 @@ input:checked + .toggle-slider:before {
     transition: all 0.3s ease;
 }
 
-.letters-display .letter-badge:hover {
+.letters-display .letter-badge:not(.used):hover {
     transform: scale(1.1);
     background: linear-gradient(135deg, var(--accent-color), var(--warning-color));
     box-shadow: 0 6px 16px rgba(255, 215, 0, 0.4);
 }
 
-.letters-display .letter-badge:active {
+.letters-display .letter-badge:not(.used):active {
     transform: scale(0.95);
 }
 
@@ -2277,6 +2292,15 @@ input:checked + .toggle-slider:before {
         height: calc(100vh - 260px);
         min-height: 400px;
         max-height: 500px;
+    }
+}
+
+/* iPhone 12/13 Pro Max（428x926）対応 */
+@media (min-width: 400px) and (max-width: 430px) and (min-height: 900px) {
+    #gameCanvas {
+        height: calc(100vh - 270px);
+        min-height: 450px;
+        max-height: 550px;
     }
 }
 

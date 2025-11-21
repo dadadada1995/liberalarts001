@@ -6,6 +6,7 @@ class Game {
         this.ui = new UIManager();
         this.physics = null;
         this.difficulty = 'easy';
+        this.difficultySettings = null; // 難易度設定を保存
         
         this.currentPhase = 'setup';
         this.isPaused = false;
@@ -26,6 +27,7 @@ class Game {
         this.createdWords = [];
         this.currentWordInput = '';
         this.availableLetters = [];
+        this.usedLettersInCurrentWord = [];
         
         this.updateInterval = null;
         this.timerInterval = null;
@@ -123,6 +125,7 @@ class Game {
         this.difficulty = this.ui.getSelectedDifficulty();
         console.log('Difficulty: ' + this.difficulty);
         
+        // 難易度設定を保存（ゲーム全体で使用）
         this.applyDifficulty();
         
         console.log('📺 Showing countdown screen');
@@ -132,12 +135,12 @@ class Game {
     }
     
     applyDifficulty() {
-        const diffSettings = CONFIG.DIFFICULTY[this.difficulty];
-        CONFIG.PHYSICS.BALL_SPEED = diffSettings.ballSpeed;
-        CONFIG.PHYSICS.BALL_MAX_SPEED = diffSettings.ballMaxSpeed;
-        CONFIG.PHYSICS.PADDLE_WIDTH = diffSettings.paddleWidth;
+        this.difficultySettings = CONFIG.DIFFICULTY[this.difficulty];
+        CONFIG.PHYSICS.BALL_SPEED = this.difficultySettings.ballSpeed;
+        CONFIG.PHYSICS.BALL_MAX_SPEED = this.difficultySettings.ballMaxSpeed;
+        CONFIG.PHYSICS.PADDLE_WIDTH = this.difficultySettings.paddleWidth;
         
-        console.log('⚙️ Difficulty applied:', diffSettings);
+        console.log('⚙️ Difficulty applied and saved:', this.difficultySettings);
     }
     
     countdown(resumeAfterSanta = false) {
@@ -202,7 +205,15 @@ class Game {
         // ゲーム画面に戻る
         this.ui.showScreen('game');
         
-        // ボールをリセット
+        // 保存された難易度設定を再適用（スピードを維持）
+        if (this.difficultySettings) {
+            CONFIG.PHYSICS.BALL_SPEED = this.difficultySettings.ballSpeed;
+            CONFIG.PHYSICS.BALL_MAX_SPEED = this.difficultySettings.ballMaxSpeed;
+            CONFIG.PHYSICS.PADDLE_WIDTH = this.difficultySettings.paddleWidth;
+            console.log('⚙️ Difficulty settings restored:', this.difficultySettings);
+        }
+        
+        // ボールをリセット（保存された難易度設定でボールを作成）
         if (this.physics) {
             this.physics.resetBall();
         }
@@ -467,6 +478,13 @@ class Game {
         setTimeout(() => {
             console.log(`🎮 Starting Stage ${this.stageCount}`);
             
+            // 難易度設定を再確認（スピードを維持）
+            if (this.difficultySettings) {
+                CONFIG.PHYSICS.BALL_SPEED = this.difficultySettings.ballSpeed;
+                CONFIG.PHYSICS.BALL_MAX_SPEED = this.difficultySettings.ballMaxSpeed;
+                console.log('✅ Speed maintained:', CONFIG.PHYSICS.BALL_SPEED);
+            }
+            
             if (this.physics) {
                 this.physics.createBlocks(this.isSpecialStage);
                 console.log(`✅ Stage ${this.stageCount}: ${this.physics.blocks.length} blocks created`);
@@ -546,6 +564,11 @@ class Game {
         if (this.ballsLeft > 0) {
             setTimeout(() => {
                 if (this.physics) {
+                    // 難易度設定を再確認してからボールをリセット
+                    if (this.difficultySettings) {
+                        CONFIG.PHYSICS.BALL_SPEED = this.difficultySettings.ballSpeed;
+                        CONFIG.PHYSICS.BALL_MAX_SPEED = this.difficultySettings.ballMaxSpeed;
+                    }
                     this.physics.resetBall();
                 }
                 this.ballLostRecently = false;
@@ -614,6 +637,7 @@ class Game {
         this.availableLetters = [...this.collectedLetters];
         this.currentWordInput = '';
         this.createdWords = [];
+        this.usedLettersInCurrentWord = [];
         
         this.ui.showScreen('wordMake');
         this.ui.displayWordMakePhase(this.availableLetters, this.wordMakeTime, this.wordMakeScore);
@@ -642,16 +666,19 @@ class Game {
         
         this.currentWordInput += letter;
         this.availableLetters.splice(index, 1);
-        this.ui.updateWordMakeDisplay(this.currentWordInput, this.availableLetters);
+        this.usedLettersInCurrentWord.push(letter);
+        this.ui.updateWordMakeDisplay(this.currentWordInput, this.availableLetters, this.usedLettersInCurrentWord);
     }
     
     clearCurrentWord() {
-        for (let letter of this.currentWordInput) {
+        // 使用中の文字を利用可能な文字に戻す
+        for (let letter of this.usedLettersInCurrentWord) {
             this.availableLetters.push(letter);
         }
         
         this.currentWordInput = '';
-        this.ui.updateWordMakeDisplay(this.currentWordInput, this.availableLetters);
+        this.usedLettersInCurrentWord = [];
+        this.ui.updateWordMakeDisplay(this.currentWordInput, this.availableLetters, this.usedLettersInCurrentWord);
     }
     
     submitWord() {
@@ -691,7 +718,8 @@ class Game {
         this.ui.showWordMakeMessage('+' + score + '点！', 'success');
         
         this.currentWordInput = '';
-        this.ui.updateWordMakeDisplay(this.currentWordInput, this.availableLetters);
+        this.usedLettersInCurrentWord = [];
+        this.ui.updateWordMakeDisplay(this.currentWordInput, this.availableLetters, this.usedLettersInCurrentWord);
         
         if (window.soundManager) {
             window.soundManager.playWordComplete();
@@ -790,6 +818,7 @@ class Game {
         this.availableLetters = [];
         this.createdWords = [];
         this.currentWordInput = '';
+        this.usedLettersInCurrentWord = [];
         this.ballsLeft = CONFIG.INITIAL_BALLS;
         this.combo = 0;
         this.maxCombo = 0;
@@ -797,6 +826,7 @@ class Game {
         this.stageCount = 1;
         this.santaSpawned = false;
         this.isPlaying = false;
+        this.difficultySettings = null; // 難易度設定もリセット
         
         this.ui.showScreen('setup');
         

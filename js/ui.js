@@ -328,7 +328,7 @@ class UIManager {
     displayWordMakePhase(availableLetters, time, score) {
         this.updateWordMakeTimer(time);
         this.updateWordMakeScore(score);
-        this.updateWordMakeDisplay('', availableLetters);
+        this.updateWordMakeDisplay('', availableLetters, []);
         
         if (this.elements.createdWordsList) {
             this.elements.createdWordsList.innerHTML = 
@@ -345,9 +345,9 @@ class UIManager {
         if (this.elements.wordMakeTimer) {
             this.elements.wordMakeTimer.textContent = time;
             
-            if (time <= 5) {
+            if (time <= 10) {
                 this.elements.wordMakeTimer.style.color = 'var(--danger-color)';
-            } else if (time <= 10) {
+            } else if (time <= 20) {
                 this.elements.wordMakeTimer.style.color = 'var(--warning-color)';
             } else {
                 this.elements.wordMakeTimer.style.color = 'var(--text-light)';
@@ -361,7 +361,7 @@ class UIManager {
         }
     }
     
-    updateWordMakeDisplay(currentWord, availableLetters) {
+    updateWordMakeDisplay(currentWord, availableLetters, usedLetters) {
         if (this.elements.currentWordDisplay) {
             if (currentWord.length === 0) {
                 this.elements.currentWordDisplay.innerHTML = 
@@ -380,11 +380,16 @@ class UIManager {
         if (this.elements.availableLettersDisplay) {
             this.elements.availableLettersDisplay.innerHTML = '';
             
-            if (availableLetters.length === 0) {
+            if (availableLetters.length === 0 && usedLetters.length === 0) {
                 this.elements.availableLettersDisplay.innerHTML = 
                     '<span class="empty-message">利用可能な文字がありません</span>';
             } else {
-                availableLetters.forEach(letter => {
+                // アルファベット順にソート
+                const sortedLetters = [...availableLetters].sort();
+                const sortedUsedLetters = [...usedLetters].sort();
+                
+                // 利用可能な文字を表示
+                sortedLetters.forEach(letter => {
                     const badge = document.createElement('div');
                     badge.className = 'letter-badge clickable';
                     badge.textContent = letter.toUpperCase();
@@ -393,6 +398,15 @@ class UIManager {
                             window.game.addLetterToWord(letter);
                         }
                     };
+                    this.elements.availableLettersDisplay.appendChild(badge);
+                });
+                
+                // 使用中の文字を「使用済み」として表示
+                sortedUsedLetters.forEach(letter => {
+                    const badge = document.createElement('div');
+                    badge.className = 'letter-badge used';
+                    badge.textContent = letter.toUpperCase();
+                    badge.title = '使用中';
                     this.elements.availableLettersDisplay.appendChild(badge);
                 });
             }
