@@ -1,4 +1,4 @@
-// ゲームメインクラス（ボールリセット機能削除版）
+// ゲームメインクラス（特別ステージバグ修正版）
 class Game {
     constructor() {
         console.log('🎮 Game initializing...');
@@ -219,13 +219,22 @@ class Game {
         
         // 特別ステージのブロックを生成
         if (this.physics) {
-            this.physics.createBlocks(this.isSpecialStage);
+            // 既存のブロックを全て削除してから新しいブロックを作成
+            console.log('🎄 Creating special stage blocks...');
+            this.physics.createBlocks(true); // 強制的に特別ステージとして作成
             console.log(`✅ Special stage blocks created: ${this.physics.blocks.length} blocks`);
             
             // ボールをリセット（難易度設定適用後）
             this.physics.resetBall();
             console.log('✅ Ball reset with speed:', CONFIG.PHYSICS.BALL_SPEED);
         }
+        
+        // コンボをリセット
+        this.combo = 0;
+        this.ui.updateCombo(0);
+        
+        // サンタスポーンフラグをリセット（特別ステージではサンタは出現しない）
+        this.santaSpawned = false;
         
         // ゲームループを再開
         this.startGameLoop();
@@ -237,6 +246,8 @@ class Game {
         if (window.soundManager) {
             window.soundManager.resumeBGM();
         }
+        
+        console.log('✅ Special stage resumed successfully');
     }
     
     startBlockBreakPhase() {
@@ -299,8 +310,6 @@ class Game {
             this.physics.movePaddle(touchX);
         };
         
-        // Rキーによるボールリセット機能を削除
-        
         canvas.addEventListener('mousemove', this.mouseMoveHandler, { passive: true });
         canvas.addEventListener('touchmove', this.touchMoveHandler, { passive: false });
     }
@@ -358,7 +367,10 @@ class Game {
                 }
             }
             
-            this.checkSantaSpawn();
+            // 特別ステージ中はサンタを出現させない
+            if (!this.isSpecialStage) {
+                this.checkSantaSpawn();
+            }
             
             if (this.blockBreakTime <= 0) {
                 this.endBlockBreakPhase();
@@ -434,6 +446,7 @@ class Game {
         this.blockBreakScore += CONFIG.SCORE.SANTA_BLOCK_BONUS;
         this.ui.updateScore(this.blockBreakScore);
         
+        // ゲームを一時停止
         this.pauseGame();
         
         this.showMerryChristmasPopup();
@@ -444,16 +457,21 @@ class Game {
             window.soundManager.playStageComplete();
         }
         
+        // 3秒後に特別ステージを開始
         setTimeout(() => {
             // 特別ステージフラグをセット
             this.isSpecialStage = true;
+            console.log('🎄 Entering special stage mode');
             
-            // 難易度設定を確認（念のため）
+            // 難易度設定を確認
             if (this.difficultySettings) {
-                console.log('🎅 Before special stage - Ball speed:', this.difficultySettings.ballSpeed);
-                console.log('🎅 Current CONFIG.PHYSICS.BALL_SPEED:', CONFIG.PHYSICS.BALL_SPEED);
+                CONFIG.PHYSICS.BALL_SPEED = this.difficultySettings.ballSpeed;
+                CONFIG.PHYSICS.BALL_MAX_SPEED = this.difficultySettings.ballMaxSpeed;
+                CONFIG.PHYSICS.BALL_MIN_SPEED = this.difficultySettings.ballSpeed * 0.6;
+                console.log('🎅 Before special stage - Ball speed:', CONFIG.PHYSICS.BALL_SPEED);
             }
             
+            // カウントダウン画面を表示
             this.ui.showScreen('countdown');
             this.countdown(true);
         }, 3000);
@@ -487,6 +505,12 @@ class Game {
         setTimeout(() => {
             console.log(`🎮 Starting Stage ${this.stageCount}`);
             
+            // 特別ステージが終了したら通常ステージに戻す
+            if (this.isSpecialStage) {
+                this.isSpecialStage = false;
+                console.log('✅ Special stage completed, returning to normal stage');
+            }
+            
             // 難易度設定を強制的に再適用（スピードを維持）
             if (this.difficultySettings) {
                 CONFIG.PHYSICS.BALL_SPEED = this.difficultySettings.ballSpeed;
@@ -500,7 +524,7 @@ class Game {
             
             if (this.physics) {
                 this.physics.createBlocks(this.isSpecialStage);
-                console.log(`✅ Stage ${this.stageCount}: ${this.physics.blocks.length} blocks created`);
+                console.log(`✅ Stage ${this.stageCount}: ${this.physics.blocks.length} blocks created (Special: ${this.isSpecialStage})`);
                 
                 // ブロック作成後、再度難易度設定を確認
                 if (this.difficultySettings) {
@@ -630,7 +654,6 @@ class Game {
             canvas.removeEventListener('mousemove', this.mouseMoveHandler);
             canvas.removeEventListener('touchmove', this.touchMoveHandler);
         }
-        // keyHandlerは削除されたのでremoveEventListenerも不要
     }
     
     startWordMakePhase() {
